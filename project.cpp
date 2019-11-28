@@ -221,7 +221,7 @@ void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key){
         ShiftRows(state);
         for (int j = 0; j < 16; j += 4)
             MixColumn(state + j);
-        AddRoundKey(state, key + (16 * (i + 1)));  //because expanded key is a pointer
+        AddRoundKey(state, key + (16 * (i + 1)));   //because expanded key is a pointer
     }
     
     //Final round
@@ -291,24 +291,24 @@ void InverseSubBytes(unsigned char* state) {
 void InverseShiftRows(unsigned char* state) {
     unsigned char temp[16]; //temporary variable which gets the values from the block in the way the shift should happen
     temp[0] = state[0];
-    temp[1] = state[5];
+    temp[1] = state[13];
     temp[2] = state[10];
-    temp[3] = state[15];
+    temp[3] = state[7];
 
     temp[4] = state[4];
-    temp[5] = state[9];
+    temp[5] = state[1];
     temp[6] = state[14];
-    temp[7] = state[3];
+    temp[7] = state[11];
 
     temp[8] = state[8];
-    temp[9] = state[13];
+    temp[9] = state[5];
     temp[10] = state[2];
-    temp[11] = state[7];
+    temp[11] = state[15];
 
     temp[12] = state[12];
-    temp[13] = state[1];
+    temp[13] = state[9];
     temp[14] = state[6];
-    temp[15] = state[11];
+    temp[15] = state[3];
 
     for (int i = 0; i < 16; i++)
         state[i] = temp[i];
@@ -336,18 +336,17 @@ void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
         state[i] = message[i];
 
     AddRoundKey(state, key + 160);
-
+    InverseShiftRows(state);
+    InverseSubBytes(state);
 
     for(int i = NumberOfRounds; i > 0; i--){
-        InverseShiftRows(state);
-        InverseSubBytes(state);
         AddRoundKey(state, key + (i << 4));
         for (int j = 0; j < 16; j += 4)
             InverseMixColumn(state + j);
+        InverseShiftRows(state);
+        InverseSubBytes(state);
     }
 
-    InverseShiftRows(state);
-    InverseSubBytes(state);
     AddRoundKey(state, key);
 
     for (int i = 0; i < 16; i++)
