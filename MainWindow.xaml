@@ -1,0 +1,18 @@
+﻿<Window x:Class="ProjectUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ProjectUI"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Label Content="Username" FontSize="20" Margin="166,124,518,251" />
+        <Label Content="Password" FontSize="20" Margin="166,193,0,182" HorizontalAlignment="Left" Width="108" />
+        <TextBox Name="username" Margin="302,124,260,251" FontSize="20" MaxLength="20" />
+        <PasswordBox Name="passwordBox" Margin="302,193,260,182" FontSize="20" MaxLength="20"/>
+        <Button Click="LoginFunc" Content="Login" FontSize="20" Margin="417,261,260,108" IsDefault="True" />
+        <Button Click="LoginFunc" Content="Sign in" FontSize="20" Margin="302,261,375,108" IsDefault="True" />
+        
+    </Grid>
+</Window>
