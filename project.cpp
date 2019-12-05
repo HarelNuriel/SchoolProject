@@ -1,6 +1,7 @@
 #include<iostream>
 #include<cstring>
-#include<sstream>
+#include <unistd.h>
+#include<string.h>
 
 unsigned char logarithmsTable[256] = {
         0x00, 0xff, 0xc8, 0x08, 0x91, 0x10, 0xd0, 0x36, 0x5a, 0x3e, 0xd8, 0x43, 0x99, 0x77, 0xfe, 0x18,
@@ -382,10 +383,16 @@ std::string AES_Decrypt(const std::string& encryptedFileContent, const std::stri
 }
 
 int main(){
-    std::string message = "hello my name is bob the builder and i am here to build stuff!";
-    std::string skey = "/.,mnbvcxzaqwert";
-    message = AES_Encrypt(message, skey);
-    message = AES_Decrypt(message, skey);
+    std::string message;
+    std::cout << "The Message:" << std::endl;
+    getline(std::cin, message);
+    std::string key;
+    std::cout << "The Key:" << std::endl;
+    getline(std::cin, key);
+    message = AES_Encrypt(message, key);
+    message = AES_Decrypt(message, key);
+    for (int i = 0; i < message.length(); i++)
+        std::cout << message[i];
 
     return 0;
 }
