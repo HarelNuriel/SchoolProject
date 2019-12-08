@@ -1,7 +1,10 @@
 #include<iostream>
-#include<cstring>
-#include <unistd.h>
 #include<string.h>
+
+#define KEY_SIZE 176
+#define NUMBER_OF_ROUNDS 9
+#define BLOCK_LENGTH 16
+#define COLUMN_LENGTH 4
 
 unsigned char logarithmsTable[256] = {
         0x00, 0xff, 0xc8, 0x08, 0x91, 0x10, 0xd0, 0x36, 0x5a, 0x3e, 0xd8, 0x43, 0x99, 0x77, 0xfe, 0x18,
@@ -98,6 +101,11 @@ unsigned char Rcon [256] = {
         0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d
 };
 
+/**
+ * @param multiplied - the value which will be multiplied
+ * @param multiplying - the value which the multiplied value will be multiplied by
+ * @return
+ */
 unsigned char galoisMultiplication(unsigned char multiplied, unsigned char multiplying) {
     int multiplication = logarithmsTable[multiplied] + logarithmsTable[multiplying];
     multiplication %= 255;
@@ -110,57 +118,60 @@ unsigned char galoisMultiplication(unsigned char multiplied, unsigned char multi
     return multiplication;
 }
 
-void KeyExpansionCore(unsigned char* keyPart, unsigned char rcon_index){
-    //rotation:
-    unsigned int* temp;
-    temp = (unsigned int*)keyPart;
-    *temp = (((*temp) >> 8) | ((*temp & 0xff) << 24));
-
-    //sbox four bytes
-    for (int i = 0; i < 4; i++){
-        keyPart[i] = SBox[keyPart[i]];
-    }
-
-    //Rcon
-    keyPart[0] ^= Rcon[rcon_index];
-}
-
+/**
+ * @param inputKey - the original key
+ * @param expandedKeys - an array containing all the keys from the expansion
+ */
 void KeyExpansion(const unsigned char* inputKey, unsigned char* expandedKeys){
     //The first 16 byte are the original key;
-    for (int i = 0; i < 16; i++){
+    for (int i = 0; i < BLOCK_LENGTH; i++){
         expandedKeys[i] = inputKey[i];
     }
 
-    int bytesGenerated = 16;    //we've generated 16 byte in the expanded key so far
+    int bytesGenerated = BLOCK_LENGTH;    //we've generated 16 byte in the expanded key so far
     int rconIteration = 1;      //Rcon iteration starts at 1
-    unsigned char temp[4];      //temporary storage for the core
+    unsigned char temp[COLUMN_LENGTH];      //temporary storage for the core
 
-    while (bytesGenerated < 176){
+    while (bytesGenerated < KEY_SIZE){
         //Read 4 bytes for the core
-        for (int i = 0; i < 4; i++)
-            temp[i] = expandedKeys[i + bytesGenerated - 4];
+        for (int i = 0; i < COLUMN_LENGTH; i++)
+            temp[i] = expandedKeys[i + bytesGenerated - COLUMN_LENGTH];
 
         //Perform the core for each 16 byte key
-        if (bytesGenerated % 16 == 0){
-            KeyExpansionCore(temp, rconIteration);
+        if (bytesGenerated % BLOCK_LENGTH == 0){
+            *temp = (((*temp) >> 8) | ((*temp & 0xff) << 24));
+
+            //sbox four bytes
+            for (int i = 0; i < COLUMN_LENGTH; i++){
+                temp[i] = SBox[temp[i]];
+            }
+
+            //Rcon
+            temp[0] ^= Rcon[rconIteration];
             rconIteration++;
         }
 
         //XOR temp with expandedKeys[bytesGenerated - 16], and store in expandedKeys
-        for (int i = 0; i < 4; i++){
-            expandedKeys[bytesGenerated] = expandedKeys[bytesGenerated - 16] ^ temp[i];
+        for (int i = 0; i < COLUMN_LENGTH; i++){
+            expandedKeys[bytesGenerated] = expandedKeys[bytesGenerated - BLOCK_LENGTH] ^ temp[i];
             bytesGenerated++;
         }
     }
 }
 
+/**
+ * @param state -  the block of text which will be operated on
+ */
 void SubBytes(unsigned char* state) {
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < BLOCK_LENGTH; i++)
         state[i] = SBox[state[i]];
 }
 
+/**
+ * @param state - the block of text which will be operated on
+ */
 void ShiftRows(unsigned char* state) {
-    unsigned char temp[16]; //temporary variable which gets the values from the block in the way the shift should happen
+    unsigned char temp[BLOCK_LENGTH]; //temporary variable which gets the values from the block in the way the shift should happen
     temp[0] = state[0];
     temp[1] = state[5];
     temp[2] = state[10];
@@ -181,48 +192,58 @@ void ShiftRows(unsigned char* state) {
     temp[14] = state[6];
     temp[15] = state[11];
 
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < BLOCK_LENGTH; i++)
         state[i] = temp[i];
 }
 
+/**
+ * @param column - the block of text which will be operated on
+ */
 void MixColumn(unsigned char* column) {
-    unsigned char* columnX2 = new unsigned char[4]; // @param columnX2 - the column times 2
-    unsigned char temp[4];                          // @param temp - a copy of the column
-    for (int i = 0; i < 4; i++){
+    unsigned char columnX2[COLUMN_LENGTH]; // @param columnX2 - the column times 2
+    unsigned char temp[COLUMN_LENGTH];                          // @param temp - a copy of the column
+    for (int i = 0; i < COLUMN_LENGTH; i++){
         temp[i] = column[i];
         columnX2[i] = column[i] << 1;
         if (column[i] & 0x80)
             columnX2[i] ^= 0x1b;
     }
-    for (int i = 0; i < 4; i++){
+    for (int i = 0; i < COLUMN_LENGTH; i++){
         //implementing the MixColumn voperation
-        column[i] = columnX2[i] ^ temp[(i + 3) % 4] ^ temp[(i + 2) % 4] ^ temp[(i + 1) % 4]  ^ columnX2[(i + 1) % 4];
+        column[i] = columnX2[i] ^ temp[(i + 3) % COLUMN_LENGTH] ^ temp[(i + 2) % COLUMN_LENGTH]
+                    ^ temp[(i + 1) % COLUMN_LENGTH] ^ columnX2[(i + 1) % COLUMN_LENGTH];
     }
-    delete[] (columnX2);
 }
 
+/**
+ * @param state - the block of text which will be operated on
+ * @param roundKey - the key used in a specific round from the expnded keys
+ */
 void AddRoundKey(unsigned char* state, unsigned char* roundKey) {
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < BLOCK_LENGTH; i++)
         state[i] ^= roundKey[i];
 }
 
+/**
+ * @param message - part of the encrypted file content which will be decrypted
+ * @param key - an array containing all the keys from the expansion
+ */
 void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key){
-    int NumberOfRounds = 9;
 
-    unsigned char state [16];
-    for (int i = 0; i < 16; i++)
+    unsigned char state [BLOCK_LENGTH];
+    for (int i = 0; i < BLOCK_LENGTH; i++)
         state[i] = message[i];
 
     //Pre-encryption
     AddRoundKey(state, key);
 
     //main rounds
-    for (int i = 0; i < NumberOfRounds; i++){
+    for (int i = 0; i < NUMBER_OF_ROUNDS; i++){
         SubBytes(state);
         ShiftRows(state);
         for (int j = 0; j < 16; j += 4)
             MixColumn(state + j);
-        AddRoundKey(state, key + (16 * (i + 1)));   //because expanded key is a pointer
+        AddRoundKey(state, key + (BLOCK_LENGTH * (i + 1)));   //because expanded key is a pointer
     }
 
     //Final round
@@ -231,16 +252,19 @@ void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key){
     AddRoundKey(state, key + 160);
 
     //copying the state into the message
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < BLOCK_LENGTH; i++)
         message[i] = state[i];
 }
 
+/**
+ * @param fileContent - the file content to encrypt
+ * @param inputKey - the original key for the encryption/decryption
+ * @return
+ */
 std::string AES_Encrypt(const std::string& fileContent, const std::string& inputKey){
 
-    std::string encryptedFile = "";
-
-    unsigned char* message = new unsigned char[fileContent.length()];
-    unsigned char* key = new unsigned char[inputKey.length()];
+    unsigned char* message = new unsigned char[fileContent.length() + 1];
+    unsigned char* key = new unsigned char[inputKey.length() + 1];
 
     strcpy( (char*)message, fileContent.c_str() );
     strcpy( (char*)(key), inputKey.c_str() );
@@ -249,8 +273,8 @@ std::string AES_Encrypt(const std::string& fileContent, const std::string& input
     int originalLen = strlen((const char*)message);
     int lenOfPaddedMessage = originalLen;
 
-    if (lenOfPaddedMessage % 16 != 0)
-        lenOfPaddedMessage = ((lenOfPaddedMessage / 16) + 1) * 16;
+    if (lenOfPaddedMessage % BLOCK_LENGTH != 0)
+        lenOfPaddedMessage = ((lenOfPaddedMessage / BLOCK_LENGTH) + 1) * BLOCK_LENGTH;
 
     unsigned char* paddedMessage = new unsigned char[lenOfPaddedMessage];
     for (int i = 0; i < lenOfPaddedMessage; i++){
@@ -261,17 +285,14 @@ std::string AES_Encrypt(const std::string& fileContent, const std::string& input
     }
 
     //expanding the key
-    unsigned char expandedKeys[176];
+    unsigned char expandedKeys[KEY_SIZE];
     KeyExpansion(key, expandedKeys);
 
     //encrypt padded message
-    for (int i = 0; i < lenOfPaddedMessage; i += 16)
+    for (int i = 0; i < lenOfPaddedMessage; i += BLOCK_LENGTH)
         AES_Encrypt_Algorithm(paddedMessage + i, expandedKeys);
 
-    for (int i = 0; i < lenOfPaddedMessage; i++){
-        encryptedFile += paddedMessage[i];
-    }
-
+    std::string encryptedFile ((char*)paddedMessage);
 
     delete[] paddedMessage;
     delete[] message;
@@ -279,14 +300,19 @@ std::string AES_Encrypt(const std::string& fileContent, const std::string& input
     return encryptedFile;
 }
 
+/**
+ * @param state - the block of text which will be operated on
+ */
 void InverseSubBytes(unsigned char* state) {
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < BLOCK_LENGTH; i++) {
         state[i] = InverseSBox[state[i]];
     }
 }
-
+/*
+ * @param state - the block of text which will be operated on
+ */
 void InverseShiftRows(unsigned char* state) {
-    unsigned char temp[16]; //temporary variable which gets the values from the block in the way the shift should happen
+    unsigned char temp[BLOCK_LENGTH]; //temporary variable which gets the values from the block in the way the shift should happen
     temp[0] = state[0];
     temp[1] = state[13];
     temp[2] = state[10];
@@ -307,37 +333,44 @@ void InverseShiftRows(unsigned char* state) {
     temp[14] = state[6];
     temp[15] = state[3];
 
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < BLOCK_LENGTH; i++)
         state[i] = temp[i];
 }
 
+/**
+ * @param column - the column which will be operated on
+ */
 void InverseMixColumn(unsigned char* column) {
-    unsigned char a[4];                          // @param temp - a copy of the column
-    for (int i = 0; i < 4; i++){
+    unsigned char a[COLUMN_LENGTH];                          // @param temp - a copy of the column
+    for (int i = 0; i < COLUMN_LENGTH; i++){
         a[i] = column[i];
     }
 
-    for (int i = 0; i < 4; i++){
+    for (int i = 0; i < COLUMN_LENGTH; i++){
         column[i] = galoisMultiplication(a[i],14) ^
-                    galoisMultiplication(a[(i+3)%4],9) ^
-                    galoisMultiplication(a[(i+2)%4],13) ^
-                    galoisMultiplication(a[(i+1)%4],11);
+                    galoisMultiplication(a[(i+3) % COLUMN_LENGTH],9) ^
+                    galoisMultiplication(a[(i+2) % COLUMN_LENGTH],13) ^
+                    galoisMultiplication(a[(i+1) % COLUMN_LENGTH],11);
     }
 }
 
+/**
+ * @param message - part of the encrypted file content which will be decrypted
+ * @param key - an array containing all the keys from the expansion
+ */
 void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
-    int NumberOfRounds = 9;
 
-    unsigned char state [16];
-    for (int i = 0; i < 16; i++)
+    unsigned char state [BLOCK_LENGTH];
+    for (int i = 0; i < BLOCK_LENGTH; i++)
         state[i] = message[i];
 
+    //AES decrypt algorithm start
     AddRoundKey(state, key + 160);
     InverseShiftRows(state);
     InverseSubBytes(state);
 
-    for(int i = NumberOfRounds; i > 0; i--){
-        AddRoundKey(state, key + (i << 4));
+    for(int i = NUMBER_OF_ROUNDS; i > 0; i--){
+        AddRoundKey(state, key + (i * 16));
         for (int j = 0; j < 16; j += 4)
             InverseMixColumn(state + j);
         InverseShiftRows(state);
@@ -345,17 +378,21 @@ void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
     }
 
     AddRoundKey(state, key);
+    //AES decrypt algorithm end
 
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < BLOCK_LENGTH; i++)
         message[i] = state[i];
 }
 
+/**
+ * @param encryptedFileContent - the content of the encrypted file.
+ * @param inputKey - the original key for the encryption/decryption
+ * @return std::string decryptedFile - the decrypted file content
+ */
 std::string AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey) {
 
-    std::string decryptedFile = "";
-
-    unsigned char* encryptedMessage = new unsigned char[encryptedFileContent.length()];
-    unsigned char* key = new unsigned char[inputKey.length()];
+    unsigned char* encryptedMessage = new unsigned char[encryptedFileContent.length() + 1];
+    unsigned char* key = new unsigned char[inputKey.length() + 1];
 
     strcpy( (char*)encryptedMessage, encryptedFileContent.c_str() );
     strcpy( (char*)(key), inputKey.c_str() );
@@ -363,18 +400,14 @@ std::string AES_Decrypt(const std::string& encryptedFileContent, const std::stri
     int Len = strlen((const char*)encryptedMessage);
 
     //expanding the key
-    unsigned char expandedKeys[176];
+    unsigned char expandedKeys[KEY_SIZE];
     KeyExpansion(key, expandedKeys);
 
     //encrypt padded message
-    for (int i = 0; i < Len; i += 16)
+    for (int i = 0; i < Len; i += BLOCK_LENGTH)
         AES_Decrypt_Algorithm(encryptedMessage + i, expandedKeys);
 
-    for (int i = 0; i < encryptedFileContent.length(); i++){
-        if (encryptedMessage[i] != 0){
-            decryptedFile += encryptedMessage[i];
-        }
-    }
+    std::string decryptedFile ((char*)encryptedMessage);
 
     delete[] encryptedMessage;
     delete[] key;
