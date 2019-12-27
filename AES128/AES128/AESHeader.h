@@ -8,6 +8,6 @@
 #endif
 
 
-extern "C" AES128_API void AES_Encrypt(const std::string & fileContent, const std::string & inputKey);
+extern "C" __declspec(dllexport) void AES_Encrypt(const std::string fileContent, const std::string inputKey);
 
-extern "C" AES128_API void AES_Decrypt(const std::string & fileContent, const std::string & inputKey);
+extern "C" __declspec(dllexport) void AES_Decrypt(const std::string fileContent, const std::string inputKey);
