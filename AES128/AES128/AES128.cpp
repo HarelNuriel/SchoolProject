@@ -1,7 +1,7 @@
 #include "pch.h"
 #include <iostream>
 #include <string.h>
-#include "AESHeader.h"
+#include "AES128.h"
 
 #define KEY_SIZE 176
 #define NUMBER_OF_ROUNDS 9
@@ -259,6 +259,47 @@ void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key) {
 }
 
 /**
+ * @param fileContent - the file content to encrypt
+ * @param inputKey - the original key for the encryption/decryption
+ */
+void __stdcall AES128::AES_Encrypt(const std::string& fileContent, const std::string& inputKey) {
+
+    unsigned char* message = new unsigned char[fileContent.length() + 1];
+    unsigned char* key = new unsigned char[inputKey.length() + 1];
+
+    strcpy((char*)message, fileContent.c_str());
+    strcpy((char*)(key), inputKey.c_str());
+
+    //Padding
+    int originalLen = strlen((const char*)message);
+    int lenOfPaddedMessage = originalLen;
+
+    if (lenOfPaddedMessage % BLOCK_LENGTH != 0)
+        lenOfPaddedMessage = ((lenOfPaddedMessage / BLOCK_LENGTH) + 1) * BLOCK_LENGTH;
+
+    unsigned char* paddedMessage = new unsigned char[lenOfPaddedMessage];
+    for (int i = 0; i < lenOfPaddedMessage; i++) {
+        if (i >= originalLen)
+            paddedMessage[i] = 0;
+        else
+            paddedMessage[i] = message[i];
+    }
+
+    //expanding the key
+    unsigned char expandedKeys[KEY_SIZE];
+    KeyExpansion(key, expandedKeys);
+
+    //encrypt padded message
+    for (int i = 0; i < lenOfPaddedMessage; i += BLOCK_LENGTH)
+        AES_Encrypt_Algorithm(paddedMessage + i, expandedKeys);
+
+    std::string encryptedFile((char*)paddedMessage);
+
+    delete[] paddedMessage;
+    delete[] message;
+}
+
+/**
  * @param state - the block of text which will be operated on
  */
 void InverseSubBytes(unsigned char* state) {
@@ -266,7 +307,6 @@ void InverseSubBytes(unsigned char* state) {
         state[i] = InverseSBox[state[i]];
     }
 }
-
 /*
  * @param state - the block of text which will be operated on
  */
@@ -343,77 +383,33 @@ void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
         message[i] = state[i];
 }
 
-extern "C"
-{
-    /**
-     * @param fileContent - the file content to encrypt
-     * @param inputKey - the original key for the encryption/decryption
-     */
-    __declspec(dllexport) void AES_Encrypt(const std::string fileContent, const std::string inputKey) {
+/**
+ * @param encryptedFileContent - the content of the encrypted file.
+ * @param inputKey - the original key for the encryption/decryption
+ * @return std::string decryptedFile - the decrypted file content
+ */
+void __stdcall AES128::AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey) {
 
-        unsigned char* message = new unsigned char[fileContent.length() + 1];
-        unsigned char* key = new unsigned char[inputKey.length() + 1];
+    unsigned char* encryptedMessage = new unsigned char[encryptedFileContent.length() + 1];
+    unsigned char* key = new unsigned char[inputKey.length() + 1];
 
-        strcpy((char*)message, fileContent.c_str());
-        strcpy((char*)(key), inputKey.c_str());
+    strcpy((char*)encryptedMessage, encryptedFileContent.c_str());
+    strcpy((char*)(key), inputKey.c_str());
 
-        //Padding
-        int originalLen = strlen((const char*)message);
-        int lenOfPaddedMessage = originalLen;
+    int Len = strlen((const char*)encryptedMessage);
 
-        if (lenOfPaddedMessage % BLOCK_LENGTH != 0)
-            lenOfPaddedMessage = ((lenOfPaddedMessage / BLOCK_LENGTH) + 1) * BLOCK_LENGTH;
+    //expanding the key
+    unsigned char expandedKeys[KEY_SIZE];
+    KeyExpansion(key, expandedKeys);
 
-        unsigned char* paddedMessage = new unsigned char[lenOfPaddedMessage];
-        for (int i = 0; i < lenOfPaddedMessage; i++) {
-            if (i >= originalLen)
-                paddedMessage[i] = 0;
-            else
-                paddedMessage[i] = message[i];
-        }
+    //encrypt padded message
+    for (int i = 0; i < Len; i += BLOCK_LENGTH)
+        AES_Decrypt_Algorithm(encryptedMessage + i, expandedKeys);
 
-        //expanding the key
-        unsigned char expandedKeys[KEY_SIZE];
-        KeyExpansion(key, expandedKeys);
+    std::string decryptedFile((char*)encryptedMessage);
 
-        //encrypt padded message
-        for (int i = 0; i < lenOfPaddedMessage; i += BLOCK_LENGTH)
-            AES_Encrypt_Algorithm(paddedMessage + i, expandedKeys);
-
-        std::string encryptedFile((char*)paddedMessage);
-
-        delete[] paddedMessage;
-        delete[] message;
-    }
-
-    /**
-     * @param encryptedFileContent - the content of the encrypted file.
-     * @param inputKey - the original key for the encryption/decryption
-     * @return std::string decryptedFile - the decrypted file content
-     */
-    __declspec(dllexport) void AES_Decrypt(const std::string encryptedFileContent, const std::string inputKey) {
-
-        unsigned char* encryptedMessage = new unsigned char[encryptedFileContent.length() + 1];
-        unsigned char* key = new unsigned char[inputKey.length() + 1];
-
-        strcpy((char*)encryptedMessage, encryptedFileContent.c_str());
-        strcpy((char*)(key), inputKey.c_str());
-
-        int Len = strlen((const char*)encryptedMessage);
-
-        //expanding the key
-        unsigned char expandedKeys[KEY_SIZE];
-        KeyExpansion(key, expandedKeys);
-
-        //encrypt padded message
-        for (int i = 0; i < Len; i += BLOCK_LENGTH)
-            AES_Decrypt_Algorithm(encryptedMessage + i, expandedKeys);
-
-        std::string decryptedFile((char*)encryptedMessage);
-
-        delete[] encryptedMessage;
-        delete[] key;
-    }
+    delete[] encryptedMessage;
+    delete[] key;
 }
 /*
 int main() {
