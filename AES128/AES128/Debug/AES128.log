@@ -1,3 +1,0 @@
-﻿  AES128.cpp
-C:\Users\user\source\repos\AES128\AES128\AES128.cpp(144,35): warning C4333: '>>': right shift by too large amount, data loss
-  AES128.vcxproj -> C:\Users\user\source\repos\AES128\Debug\AES128.dll

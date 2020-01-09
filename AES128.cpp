@@ -1,6 +1,3 @@
-#include "pch.h"
-#include <iostream>
-#include <string.h>
 #include "AES128.h"
 
 #define KEY_SIZE 176
@@ -262,7 +259,7 @@ void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key) {
  * @param fileContent - the file content to encrypt
  * @param inputKey - the original key for the encryption/decryption
  */
-void __stdcall AES128::AES_Encrypt(const std::string& fileContent, const std::string& inputKey) {
+void AES128::AES_Encrypt(const std::string& fileContent, const std::string& inputKey) {
 
     unsigned char* message = new unsigned char[fileContent.length() + 1];
     unsigned char* key = new unsigned char[inputKey.length() + 1];
@@ -388,7 +385,7 @@ void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
  * @param inputKey - the original key for the encryption/decryption
  * @return std::string decryptedFile - the decrypted file content
  */
-void __stdcall AES128::AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey) {
+void AES128::AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey) {
 
     unsigned char* encryptedMessage = new unsigned char[encryptedFileContent.length() + 1];
     unsigned char* key = new unsigned char[inputKey.length() + 1];
@@ -423,6 +420,5 @@ int main() {
     message = AES_Decrypt(message, key);
     for (int i = 0; i < message.length(); i++)
         std::cout << message[i];
-
     return 0;
 }*/
