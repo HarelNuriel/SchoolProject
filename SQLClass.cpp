@@ -1,17 +1,8 @@
 #include "SQLClass.h"
 
-static int callback(void* NotUsed, int argc, char** argv, char** azColName) {
-	int i;
-	for (i = 0; i < argc; i++) {
-		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-	}
-	printf("\n");
-	return 0;
-}
-
 SQLClass::SQLClass()
 {
-	char* errMsg;
+	char* errMsg = 0;
 	rc = sqlite3_open("Accounts.db", &db);
 
 	if (rc)
@@ -20,22 +11,74 @@ SQLClass::SQLClass()
 		throw("Error: Can't open database: %s\n", sqlite3_errmsg(db));
 	}
 
-	char sqlScript[] = "CREATE TABLE IF NOT EXISTS Accounts( Username varchar PRIMARY KEY NOT NULL, Password varchar NOT NULL);";
+	char sqlScript[] = "CREATE TABLE IF NOT EXISTS Accounts( Username varchar PRIMARY KEY NOT NULL, Password varchar NOT NULL);" \
+					   "CREATE TABLE IF NOT EXISTS Paths(Username varchar NOT NULL, Path varchar PRIMARY KEY NOT NULL);";
 
 	rc = sqlite3_exec(db, sqlScript, callback, 0, &errMsg);
 
 	if (rc != SQLITE_OK) {
-		fprintf(stderr, "SQL error: %s\n", errMsg);
-		sqlite3_free(errMsg);
+		throw("Error: %s\n", sqlite3_errmsg(db));
 	}
 }
 
-void SQLClass::addUser()
+SQLClass::~SQLClass()
 {
+	sqlite3_close(db);
+}
 
+void SQLClass::addAccount(std::string user, std::string password)
+{
+	char* errMsg;
+	std::string sql = "INSERT INTO Accounts(Username, Password) VALUES ('" + user + "','" + password + "');";
+	char* sqlScript = new char[sql.length()];
+	strcpy(sqlScript, sql.c_str());
+
+	rc = sqlite3_exec(db, sqlScript, callback, 0, &errMsg);
+
+	if (rc != SQLITE_OK) {
+		throw("Error: %s\n", sqlite3_errmsg(db));
+	}
+}
+
+void SQLClass::addPath(std::string user, std::string path)
+{
+}
+
+bool SQLClass::IsPathExists(std::string path)
+{
+	return false;
 }
 
 bool SQLClass::IsUserExists(std::string user)
 {
-	return false;
+	char* errMsg;
+	std::string sql = "SELECT" + user + "from Accounts";
+	char* sqlScript = new char[sql.length()];
+	strcpy(sqlScript, sql.c_str());
+	const char* data = "";
+
+	return sqlite3_exec(db, sqlScript, isUserExists, (void*)data, &errMsg);
+}
+
+void SQLClass::updateUsername(std::string user, std::string password)
+{
+}
+
+void SQLClass::updatePassword(std::string user, std::string password)
+{
+}
+
+int SQLClass::callback(void* NotUsed, int argc, char** argv, char** azColName)
+{
+	int i;
+	for (i = 0; i < argc; i++) {
+		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+	}
+	printf("\n");
+	return 0;
+}
+
+int SQLClass::isUserExists(void* data, int argc, char** argv, char** azColName)
+{
+	return argv[0] ? 1 : 0;
 }
