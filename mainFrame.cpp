@@ -2,6 +2,7 @@
 
 BEGIN_EVENT_TABLE(mainFrame, wxFrame)
     EVT_BUTTON(2, mainFrame::loginFunc)
+    EVT_BUTTON(5, mainFrame::signinFunc)
 END_EVENT_TABLE()
 
 mainFrame::mainFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
@@ -49,9 +50,6 @@ mainFrame::mainFrame(const wxString& title, const wxPoint& pos, const wxSize& si
 
     Centre();
 }
-//(this, TEXT_Main,
-//wxEmptyString, wxPoint(10, 70), wxDefaultSize,
-//wxTE_RICH, wxDefaultValidator, wxTextCtrlNameStr);
 
 mainFrame::~mainFrame()
 {
@@ -62,10 +60,18 @@ void mainFrame::loginFunc(wxCommandEvent &evt)
 
     wxString usrname =  usrTextBox->GetValue();
     wxString password = passTextBox->GetValue();
+    
+    if (db->IsUserExists(usrname.ToStdString())) {
+        usrWin* userWin = new usrWin(nullptr, wxT("AES Project"), wxPoint(-1, -1), wxSize(800, 600));
+        this->Close();
+        userWin->Show();
+    }
+}
 
-    usrWin* userWin = new usrWin(nullptr, wxT("AES Project"), wxPoint(-1, -1), wxSize(800, 600));
-    this->Close();
-    userWin->Show();
+void mainFrame::signinFunc(wxCommandEvent& evt)
+{
+    if (db->IsUserExists(usrTextBox->GetValue().ToStdString()))
+        db->addAccount(usrTextBox->GetValue().ToStdString(), passTextBox->GetValue().ToStdString());
 }
 
 //http://zetcode.com/gui/wxwidgets/layoutmanagement/
