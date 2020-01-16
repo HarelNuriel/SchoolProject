@@ -29,7 +29,7 @@ SQLClass::~SQLClass()
 void SQLClass::addAccount(std::string user, std::string password)
 {
 	char* errMsg;
-	std::string sql = "INSERT INTO Accounts(Username, Password) VALUES ('" + user + "','" + password + "');";
+	std::string sql = "SELECT STRING_ESCAPE('" + user + "', 'json') AS User; SELECT STRING_ESCAPE('" + password + "', 'json') AS Password; INSERT INTO Accounts(Username, Password) VALUES ('User','Password');"; //' -- "
 	char* sqlScript = new char[sql.length()];
 	strcpy(sqlScript, sql.c_str());
 
@@ -38,6 +38,8 @@ void SQLClass::addAccount(std::string user, std::string password)
 	if (rc != SQLITE_OK) {
 		throw("Error: %s\n", sqlite3_errmsg(db));
 	}
+
+	delete [] sqlScript;
 }
 
 void SQLClass::addPath(std::string user, std::string path)
