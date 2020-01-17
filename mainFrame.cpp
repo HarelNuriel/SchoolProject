@@ -61,17 +61,27 @@ void mainFrame::loginFunc(wxCommandEvent &evt)
     wxString usrname =  usrTextBox->GetValue();
     wxString password = passTextBox->GetValue();
     
-    if (db->IsUserExists(usrname.ToStdString())) {
+    if (db->IsUserExists(usrname.ToStdString(), password.ToStdString())) {
         usrWin* userWin = new usrWin(nullptr, wxT("AES Project"), wxPoint(-1, -1), wxSize(800, 600));
         this->Close();
         userWin->Show();
     }
+    else
+        wxMessageBox(wxT("Error: Wrong Username or Password."));
 }
 
 void mainFrame::signinFunc(wxCommandEvent& evt)
 {
-    if (db->IsUserExists(usrTextBox->GetValue().ToStdString()))
-        db->addAccount(usrTextBox->GetValue().ToStdString(), passTextBox->GetValue().ToStdString());
+    if (!db->IsUserExists(usrTextBox->GetValue().ToStdString(), passTextBox->GetValue().ToStdString())) {
+        try {
+            db->addAccount(usrTextBox->GetValue().ToStdString(), passTextBox->GetValue().ToStdString());
+        }
+        catch(int e){
+            wxMessageBox(wxT("An Error Has Occured."));
+        }
+    }
+    else
+        wxMessageBox(wxT("Error: That username already exists."));
 }
 
 //http://zetcode.com/gui/wxwidgets/layoutmanagement/
