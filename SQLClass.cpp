@@ -12,7 +12,7 @@ SQLClass::SQLClass()
 	}
 
 	char sqlScript[] = "CREATE TABLE IF NOT EXISTS Accounts( Username varchar PRIMARY KEY NOT NULL, Password varchar NOT NULL);" \
-					   "CREATE TABLE IF NOT EXISTS Paths(Username varchar NOT NULL, Path varchar PRIMARY KEY NOT NULL);";
+		"CREATE TABLE IF NOT EXISTS Paths(Username varchar NOT NULL, Path varchar PRIMARY KEY NOT NULL);";
 
 	rc = sqlite3_exec(db, sqlScript, callback, 0, &errMsg);
 
@@ -29,9 +29,22 @@ SQLClass::~SQLClass()
 void SQLClass::addAccount(std::string user, std::string password)
 {
 	char* errMsg;
-	std::string sql = "SELECT STRING_ESCAPE('" + user + "', 'json') AS User; SELECT STRING_ESCAPE('" + password + "', 'json') AS Password; INSERT INTO Accounts(Username, Password) VALUES ('User','Password');"; //' -- "
-	char* sqlScript = new char[sql.length()];
-	strcpy(sqlScript, sql.c_str());
+	std::string sql = "INSERT INTO Accounts(Username, Password) VALUES ('" + user + "','" + password + "');"; //' -- "
+	const char* sqlScript = sql.c_str();;
+	
+	rc = sqlite3_exec(db, sqlScript, callback, 0, &errMsg);
+
+	if (rc != SQLITE_OK) {
+		throw("Error: %s\n", sqlite3_errmsg(db));
+	}
+
+}
+
+void SQLClass::addPath(std::string user, std::string path)
+{
+	char* errMsg;
+	std::string sql = "INSERT INTO Paths(Username, Password) VALUES ('" + user + "','" + path + "');";
+	const char* sqlScript = sql.c_str();
 
 	rc = sqlite3_exec(db, sqlScript, callback, 0, &errMsg);
 
@@ -39,27 +52,38 @@ void SQLClass::addAccount(std::string user, std::string password)
 		throw("Error: %s\n", sqlite3_errmsg(db));
 	}
 
-	delete [] sqlScript;
 }
 
-void SQLClass::addPath(std::string user, std::string path)
-{
-}
-
-bool SQLClass::IsPathExists(std::string path)
-{
-	return false;
-}
-
-bool SQLClass::IsUserExists(std::string user)
+bool SQLClass::IsPathExists(std::string path, std::string user)
 {
 	char* errMsg;
-	std::string sql = "SELECT" + user + "from Accounts";
-	char* sqlScript = new char[sql.length()];
-	strcpy(sqlScript, sql.c_str());
-	const char* data = "";
+	std::string sql = "SELECT " + path + " from Paths";
+	const char* sqlScript = sql.c_str();
+	bool data = false;
 
-	return sqlite3_exec(db, sqlScript, isUserExists, (void*)data, &errMsg);
+	rc = sqlite3_exec(db, sqlScript, isExistsInTable, (void*)data, &errMsg);
+
+	if (rc != SQLITE_OK) {
+		return false;
+	}
+
+	return true;
+}
+
+bool SQLClass::IsUserExists(std::string user, std::string password)
+{
+	char* errMsg;
+	std::string sql = "SELECT " + password + " from Accounts WHERE Username = " + user;
+	const char* sqlScript = sql.c_str();
+	const char* data = password.c_str();
+
+	rc = sqlite3_exec(db, sqlScript, isExistsInTable, (void*)data, &errMsg);
+
+	if (rc != SQLITE_OK) {
+		return false;
+	}
+
+	return true;
 }
 
 void SQLClass::updateUsername(std::string user, std::string password)
@@ -80,7 +104,10 @@ int SQLClass::callback(void* NotUsed, int argc, char** argv, char** azColName)
 	return 0;
 }
 
-int SQLClass::isUserExists(void* data, int argc, char** argv, char** azColName)
+int SQLClass::isExistsInTable(void* data, int argc, char** argv, char** azColName)
 {
-	return argv[0] ? 1 : 0;
+	if (argv[0] == (char*)data)
+		return 0;
+	else
+		return 1;
 }
