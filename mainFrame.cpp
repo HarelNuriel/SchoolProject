@@ -11,8 +11,7 @@ mainFrame::mainFrame(const wxString& title, const wxPoint& pos, const wxSize& si
     wxPanel* panel = new wxPanel(this, 3);
 
     wxBoxSizer* vbox = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* hbox1 = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer* hbox2 = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* btnBox = new wxBoxSizer(wxHORIZONTAL);
 
     wxFlexGridSizer* fgs = new wxFlexGridSizer(3, 2, 9, 25);
 
@@ -39,13 +38,11 @@ mainFrame::mainFrame(const wxString& title, const wxPoint& pos, const wxSize& si
 
     loginBtn = new wxButton(panel, 2, "Login");
     signinBtn = new wxButton(panel, 5, "Signin");
-    hbox1->Add(new wxPanel(panel, 3));
-    vbox->Add(hbox1, 4, wxEXPAND);
 
-    hbox2->Add(loginBtn);
-    hbox2->Add(signinBtn);
+    btnBox->Add(loginBtn);
+    btnBox->Add(signinBtn);
 
-    vbox->Add(hbox2, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 10);
+    vbox->Add(btnBox, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 10);
     panel->SetSizer(vbox);
 
     Centre();
@@ -72,6 +69,10 @@ void mainFrame::loginFunc(wxCommandEvent &evt)
 
 void mainFrame::signinFunc(wxCommandEvent& evt)
 {
+    /*if (!IsPasswordValid(passTextBox->GetValue().ToStdString())) {
+        wxMessageBox(wxT("Error: Invalid Password."));
+        return;
+    }*/
     if (!db->IsUserExists(usrTextBox->GetValue().ToStdString(), passTextBox->GetValue().ToStdString())) {
         try {
             db->addAccount(usrTextBox->GetValue().ToStdString(), passTextBox->GetValue().ToStdString());
@@ -82,6 +83,10 @@ void mainFrame::signinFunc(wxCommandEvent& evt)
     }
     else
         wxMessageBox(wxT("Error: That username already exists."));
+}
+
+bool mainFrame::IsPasswordValid(std::string password) {
+    return (password.length() >= 8);    //return true if the password matches the exp and has length of 8+ chars.
 }
 
 //http://zetcode.com/gui/wxwidgets/layoutmanagement/
