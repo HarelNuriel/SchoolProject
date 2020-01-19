@@ -112,9 +112,7 @@ void usrWin::encryptFile(wxCommandEvent& evt)
         wxMessageBox(wxT("Error: Path not exists."));
         return;
     }
-    else {
-        wxMessageBox(wxT("Success"));
-    }
+
     const int fileSize = std::filesystem::file_size(path);
     std::ofstream fwriter;
     std::ifstream freader;
@@ -144,8 +142,6 @@ void usrWin::encryptFile(wxCommandEvent& evt)
         fwriter.close();
         wxMessageBox(wxT("Successfully Encrypted The File"));
     }
-
-    delete[] data;
 }
 
 bool usrWin::IsPathValid(std::string path)
