@@ -1,25 +1,26 @@
 #include "usrWin.h"
+#include "mainFrame.h"
 
-BEGIN_EVENT_TABLE(usrWin, wxFrame)
-    EVT_BUTTON(2, usrWin::encryptFile)
-    EVT_BUTTON(5, usrWin::decryptFile)
-    EVT_BUTTON(6, usrWin::back)
+BEGIN_EVENT_TABLE(userWindow, wxFrame)
+    EVT_BUTTON(2, userWindow::encryptFile)
+    EVT_BUTTON(5, userWindow::decryptFile)
+    EVT_BUTTON(6, userWindow::back)
 END_EVENT_TABLE()
 
-usrWin::usrWin(wxWindow* win, const wxString& title, const wxPoint& pos, const wxSize& size)
+userWindow::userWindow(wxWindow* win, const wxString& title, const wxPoint& pos, const wxSize& size)
     : wxFrame(win, 1001, title, pos, size)
 {
-    wxPanel* panel = new wxPanel(this, 3);
+    panel = new wxPanel(this, 3);
 
-    wxBoxSizer* vbox = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* btnBoxR = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer* btnBoxL = new wxBoxSizer(wxHORIZONTAL);
+    vbox = new wxBoxSizer(wxVERTICAL);
+    btnBoxR = new wxBoxSizer(wxHORIZONTAL);
+    btnBoxL = new wxBoxSizer(wxHORIZONTAL);
 
-    wxFlexGridSizer* fgs = new wxFlexGridSizer(3, 2, 9, 25);
+    fgs = new wxFlexGridSizer(3, 2, 9, 25);
 
-    wxFont* font = new wxFont(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    font = new wxFont(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
-    wxStaticText* path = new wxStaticText(panel, -1, wxT("Path"), wxDefaultPosition, wxSize(100, 50));
+    path = new wxStaticText(panel, -1, wxT("Path"), wxDefaultPosition, wxSize(100, 50));
 
     path->SetFont(*font);
 
@@ -49,18 +50,29 @@ usrWin::usrWin(wxWindow* win, const wxString& title, const wxPoint& pos, const w
     Centre();
 }
 
-usrWin::~usrWin()
+userWindow::~userWindow()
 {
+    delete pathTextBox;
+    delete backBtn;
+    delete encryptBtn;
+    delete decryptBtn;
+    delete vbox;
+    delete btnBoxR;
+    delete btnBoxL;
+    delete fgs;
+    delete font;
+    delete path;
+    delete panel;
 }
 
-void usrWin::back(wxCommandEvent& evt)
+void userWindow::back(wxCommandEvent& evt)
 {
     mainFrame* mainWin  = new mainFrame(wxT("AES Project"), wxPoint(-1, -1), wxSize(800, 600));
     this->Close();
     mainWin->Show();
 }
 
-void usrWin::decryptFile(wxCommandEvent& evt)
+void userWindow::decryptFile(wxCommandEvent& evt)
 {
     std::string path = pathTextBox->GetValue().ToStdString();
     std::filesystem::file_status status = std::filesystem::file_status{};
@@ -103,7 +115,7 @@ void usrWin::decryptFile(wxCommandEvent& evt)
     delete[] data;
 }
 
-void usrWin::encryptFile(wxCommandEvent& evt)
+void userWindow::encryptFile(wxCommandEvent& evt)
 {
     std::string path = pathTextBox->GetValue().ToStdString();
     std::filesystem::file_status status = std::filesystem::file_status{};
@@ -144,7 +156,7 @@ void usrWin::encryptFile(wxCommandEvent& evt)
     }
 }
 
-bool usrWin::IsPathValid(std::string path)
+bool userWindow::IsPathValid(std::string path)
 {
     std::ifstream test(path);
     return (test) ? true : false;
