@@ -1,9 +1,11 @@
 #pragma once
 
 #include "wx/wx.h"
-#include "usrWin.h"
+//#include "usrWin.h"
 #include "SQLClass.h"
 #include <regex>
+
+class userWindow;
 
 class mainFrame : public wxFrame // MainFrame is the class for our window,
 { // It contains the window and all objects in it
@@ -14,6 +16,14 @@ public:
     wxTextCtrl* passTextBox;
     wxButton* loginBtn;
     wxButton* signinBtn;
+    userWindow* window;
+    wxPanel* panel;
+    wxBoxSizer* vbox;
+    wxBoxSizer* btnBox;
+    wxFlexGridSizer* fgs;
+    wxFont* font;
+    wxStaticText* usrname;
+    wxStaticText* password;
 
     void loginFunc(wxCommandEvent &evt);
     void signinFunc(wxCommandEvent &evt);
