@@ -1,5 +1,5 @@
 #include "mainFrame.h"
-
+#include "usrWin.h"
 BEGIN_EVENT_TABLE(mainFrame, wxFrame)
     EVT_BUTTON(2, mainFrame::loginFunc)
     EVT_BUTTON(5, mainFrame::signinFunc)
@@ -8,17 +8,17 @@ END_EVENT_TABLE()
 mainFrame::mainFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
     : wxFrame(nullptr, 1000, title, pos, size)
 {
-    wxPanel* panel = new wxPanel(this, 3);
+    panel = new wxPanel(this, 3);
 
-    wxBoxSizer* vbox = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* btnBox = new wxBoxSizer(wxHORIZONTAL);
+    vbox = new wxBoxSizer(wxVERTICAL);
+    btnBox = new wxBoxSizer(wxHORIZONTAL);
 
-    wxFlexGridSizer* fgs = new wxFlexGridSizer(3, 2, 9, 25);
+    fgs = new wxFlexGridSizer(3, 2, 9, 25);
 
-    wxFont* font = new wxFont(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    font = new wxFont(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
-    wxStaticText* usrname = new wxStaticText(panel, -1, wxT("Username"), wxDefaultPosition, wxSize(100, 50));
-    wxStaticText* password = new wxStaticText(panel, -1, wxT("Password"), wxDefaultPosition, wxSize(100, 50));
+    usrname = new wxStaticText(panel, -1, wxT("Username"), wxDefaultPosition, wxSize(100, 50));
+    password = new wxStaticText(panel, -1, wxT("Password"), wxDefaultPosition, wxSize(100, 50));
 
     usrname->SetFont(*font);
     password->SetFont(*font);
@@ -50,6 +50,20 @@ mainFrame::mainFrame(const wxString& title, const wxPoint& pos, const wxSize& si
 
 mainFrame::~mainFrame()
 {
+    db->~SQLClass();
+    delete window;
+    delete usrTextBox;
+    delete passTextBox;
+    delete loginBtn;
+    delete signinBtn;
+    delete db;
+    delete panel;
+    delete vbox;
+    delete btnBox;
+    delete fgs;
+    delete font;
+    delete usrname;
+    delete password;
 }
 
 void mainFrame::loginFunc(wxCommandEvent &evt)
@@ -59,9 +73,9 @@ void mainFrame::loginFunc(wxCommandEvent &evt)
     wxString password = passTextBox->GetValue();
     
     if (db->IsUserExists(usrname.ToStdString(), password.ToStdString())) {
-        usrWin* userWin = new usrWin(nullptr, wxT("AES Project"), wxPoint(-1, -1), wxSize(800, 600));
+        window = new userWindow(nullptr, wxT("AES Project"), wxPoint(-1, -1), wxSize(800, 600));
         this->Close();
-        userWin->Show();
+        window->Show();
     }
     else
         wxMessageBox(wxT("Error: Wrong Username or Password."));
