@@ -3,7 +3,7 @@
 SQLClass::SQLClass()
 {
 	char* errMsg = 0;
-	rc = sqlite3_open("Accounts.db", &db);
+	rc = sqlite3_open("DataBase.db", &db);
 
 	if (rc)
 	{
@@ -28,20 +28,20 @@ SQLClass::~SQLClass()
 
 void SQLClass::addAccount(std::string user, std::string password)
 {
-	char* errMsg;
-	sqlite3_stmt* sql;
-	sqlite3_prepare_v2(
-		db,
-		"INSERT INTO Accounts(Username, Password) VALUES (?, ?)",
-		-1,
-		&sql,
-		NULL
-	);
+	char* zErrMsg = 0;
+	int rc;
+	std::string sql = "INSERT INTO Accounts(User, Password) VALUES ('" + user + "','" + password + "');";
+	const char* sqlScript = sql.c_str();
 
-	sqlite3_bind_text(sql, 1, user.c_str(), -1, SQLITE_TRANSIENT);
-	sqlite3_bind_text(sql, 2, password.c_str(), -1, SQLITE_TRANSIENT);
+	rc = sqlite3_exec(db, sqlScript, callback, 0, &zErrMsg);
 
-	sqlite3_step(sql);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "SQL error: %s\n", zErrMsg);
+		sqlite3_free(zErrMsg);
+	}
+	else {
+		fprintf(stdout, "Records created successfully\n");
+	}
 }
 
 void SQLClass::addPath(std::string user, std::string path)
@@ -101,7 +101,6 @@ bool SQLClass::IsPathExists(std::string path, std::string user)
 	} while (false);
 	// cleanup
 	if (NULL != query) sqlite3_finalize(query);
-	if (NULL != db) sqlite3_close(db);
 	sqlite3_shutdown();
 	return ret;
 }
@@ -138,9 +137,8 @@ bool SQLClass::IsUserExists(std::string user, std::string password)
 
 	// cleanup
 	if (NULL != query) sqlite3_finalize(query);
-	if (NULL != db) sqlite3_close(db);
 	sqlite3_shutdown();
-	return a == NULL;
+	return a != NULL;
 }
 
 void SQLClass::updateUsername(std::string user, std::string password)
