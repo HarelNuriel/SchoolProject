@@ -4,10 +4,15 @@
 #include <iostream>
 #include <string.h>
 
+#define KEY_SIZE 176
+#define NUMBER_OF_ROUNDS 9
+#define BLOCK_LENGTH 16
+#define COLUMN_LENGTH 4
+
 class AES128
 {
 public:
-	void AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey);
-	void AES_Encrypt(const std::string& encryptedFileContent, const std::string& inputKey);
+	std::string AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey);
+	std::string AES_Encrypt(const std::string& encryptedFileContent, const std::string& inputKey);
 };
 
