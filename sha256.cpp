@@ -151,7 +151,7 @@ void SHA256::final(unsigned char* digest)
     }
 }
 
-std::string sha256(std::string input)
+std::string SHA256::sha256(std::string input)
 {
     unsigned char digest[SHA256::DIGEST_SIZE];
     memset(digest, 0, SHA256::DIGEST_SIZE);
