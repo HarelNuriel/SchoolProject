@@ -36,6 +36,8 @@
  */
 
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
+#include "sha256.h"
 #ifndef SHA256_H
 #define SHA256_H
 #include <string>
@@ -53,6 +55,7 @@ public:
     void init();
     void update(const unsigned char* message, unsigned int len);
     void final(unsigned char* digest);
+    std::string sha256(std::string input);
     static const unsigned int DIGEST_SIZE = (256 / 8);
 
 protected:
@@ -63,7 +66,7 @@ protected:
     uint32 m_h[8];
 };
 
-std::string sha256(std::string input);
+//std::string sha256(std::string input);
 
 #define SHA2_SHFR(x, n)    (x >> n)
 #define SHA2_ROTR(x, n)   ((x >> n) | (x << ((sizeof(x) << 3) - n)))
