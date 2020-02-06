@@ -54,7 +54,7 @@ void SQLClass::addPath(std::string user, std::string path)
 bool SQLClass::IsPathExists(std::string path, std::string user)
 {
 	char* errMsg;
-	std::string sql = "SELECT Path FROM Paths WHERE Username='" + user + "' AND Path='" + path + "';";
+	std::string sql = "SELECT COUNT(*) FROM Paths WHERE Username='" + user + "' AND Path='" + path + "';";
 	const char* sqlScript = sql.c_str();
 
 	rc = sqlite3_exec(db, sqlScript, isInTable, 0, &errMsg);
@@ -69,13 +69,13 @@ bool SQLClass::IsPathExists(std::string path, std::string user)
 bool SQLClass::IsUserExists(std::string user, std::string password)
 {
 	char* errMsg;
-	std::string sql = "SELECT Username FROM Accounts WHERE Username='" + user + "' AND Password='" + password + "';";
+	std::string sql = "SELECT COUNT(*) FROM Accounts WHERE Username='" + user + "' AND Password='" + password + "';";
 	const char* sqlScript = sql.c_str();
 
 	rc = sqlite3_exec(db, sqlScript, isInTable, 0, &errMsg);
 
 	if (rc != SQLITE_OK) {
-		wxMessageBox(sqlite3_errmsg(db));
+		//wxMessageBox(sqlite3_errmsg(db));
 		return false;
 	}
 	return true;
@@ -143,5 +143,7 @@ int SQLClass::callback(void* NotUsed, int argc, char** argv, char** azColName)
 
 int SQLClass::isInTable(void* NotUsed, int argc, char** argv, char** azColName)
 {
-	return argc == 0;
+	if (argv[0][0] == '0')
+		return 1;
+	return 0;
 }
