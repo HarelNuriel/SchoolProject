@@ -12,7 +12,13 @@
 class AES128
 {
 public:
+	~AES128();
 	std::string AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey);
 	std::string AES_Encrypt(const std::string& encryptedFileContent, const std::string& inputKey);
+
+private:
+	unsigned char* encryptedMessage;
+	unsigned char* key;
+	unsigned char* message;
 };
 
