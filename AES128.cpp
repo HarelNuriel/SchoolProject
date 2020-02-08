@@ -287,9 +287,6 @@ std::string AES128::AES_Encrypt(const std::string& fileContent, const std::strin
 
     std::string encryptedFile((char*)paddedMessage);
 
-    delete[] paddedMessage;
-    delete[] message;
-
     return encryptedFile;
 }
 
@@ -377,6 +374,13 @@ void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
         message[i] = state[i];
 }
 
+AES128::~AES128()
+{
+    delete[] encryptedMessage;
+    delete[] key;
+    delete[] message;
+}
+
 /**
  * @param encryptedFileContent - the content of the encrypted file.
  * @param inputKey - the original key for the encryption/decryption
@@ -401,9 +405,6 @@ std::string AES128::AES_Decrypt(const std::string& encryptedFileContent, const s
         AES_Decrypt_Algorithm(encryptedMessage + i, expandedKeys);
 
     std::string decryptedFile((char*)encryptedMessage);
-
-    delete[] encryptedMessage;
-    delete[] key;
 
     return decryptedFile;
 }
