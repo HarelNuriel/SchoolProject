@@ -86,16 +86,24 @@ void userWindow::back(wxCommandEvent& evt)
 
 void userWindow::decryptFile(wxCommandEvent& evt)
 {
+    std::regex exp("^.:(\\.+)*(\..+)*");
+    std::string path = pathTextBox->GetValue().ToStdString();
+    
+
+    if (!std::regex_match(path, exp)) {
+        wxMessageBox(wxT("Error: Invalid Path."));
+        return;
+    }
+
     //checking if the path exists (path encrypted) in the data base
     if (!db->IsPathExists(pathTextBox->GetValue().ToStdString(), Username)) {
-        wxMessageBox(wxT("Error: Path already exists."));
+        wxMessageBox(wxT("Error: Path Does Not exist."));
         return;
     }
     else {
         db->removePath(Username, pathTextBox->GetValue().ToStdString());
     }
 
-    std::string path = pathTextBox->GetValue().ToStdString();
     std::filesystem::file_status status = std::filesystem::file_status{};
 
     if (!(std::filesystem::status_known(status) ? std::filesystem::exists(status) : std::filesystem::exists(path))) {
@@ -119,7 +127,7 @@ void userWindow::decryptFile(wxCommandEvent& evt)
                 freader.open(dir.path());
                 freader >> data;
                 freader.close();
-                decryptedData = decrypt->AES_Decrypt(data, "abcdefghijklmnop");
+                decryptedData += decrypt->AES_Decrypt(data, "abcdefghijklmnop");
                 fwriter.open(dir.path());
                 fwriter << decryptedData;
                 fwriter.close();
@@ -143,6 +151,15 @@ void userWindow::decryptFile(wxCommandEvent& evt)
 
 void userWindow::encryptFile(wxCommandEvent& evt)
 {
+    std::regex exp("^.:(\\.+)*(\..+)*");
+    std::string path = pathTextBox->GetValue().ToStdString();
+
+
+    if (!std::regex_match(path, exp)) {
+        wxMessageBox(wxT("Error: Invalid Path."));
+        return;
+    }
+
     if (db->IsPathExists(pathTextBox->GetValue().ToStdString(), Username)) {
         wxMessageBox(wxT("Error: Path already exists."));
         return;
@@ -151,7 +168,6 @@ void userWindow::encryptFile(wxCommandEvent& evt)
         db->addPath(Username, pathTextBox->GetValue().ToStdString());
     }
 
-    std::string path = pathTextBox->GetValue().ToStdString();
     std::filesystem::file_status status = std::filesystem::file_status{};
 
     if (!(std::filesystem::status_known(status) ? std::filesystem::exists(status) : std::filesystem::exists(path))) {
