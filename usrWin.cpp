@@ -127,7 +127,7 @@ void userWindow::decryptFile(wxCommandEvent& evt)
                 freader.open(dir.path());
                 freader >> data;
                 freader.close();
-                decryptedData += decrypt->AES_Decrypt(data, "abcdefghijklmnop");
+                decryptedData += decrypt->AES_Decrypt(data, key);
                 fwriter.open(dir.path());
                 fwriter << decryptedData;
                 fwriter.close();
@@ -139,7 +139,7 @@ void userWindow::decryptFile(wxCommandEvent& evt)
         freader.open(path);
         freader >> data;
         freader.close();
-        decryptedData = decrypt->AES_Decrypt(data, "abcdefghijklmnop");
+        decryptedData = decrypt->AES_Decrypt(data, key);
         fwriter.open(path);
         fwriter << data;
         fwriter.close();
@@ -191,7 +191,7 @@ void userWindow::encryptFile(wxCommandEvent& evt)
                 freader.open(dir.path());
                 freader >> data;
                 freader.close();
-                EncryptedData = encrypt->AES_Encrypt(data, "abcdefghijklmnop");
+                EncryptedData = encrypt->AES_Encrypt(data, key);
                 fwriter.open(dir.path());
                 fwriter << EncryptedData;
                 fwriter.close();
@@ -204,7 +204,7 @@ void userWindow::encryptFile(wxCommandEvent& evt)
         freader.open(path);
         freader >> data;
         freader.close();
-        EncryptedData = encrypt->AES_Encrypt(data, "abcdefghijklmnop");
+        EncryptedData = encrypt->AES_Encrypt(data, key);
         fwriter.open(path);
         fwriter << data;
         fwriter.close();
