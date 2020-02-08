@@ -1,10 +1,5 @@
 #include "AES128.h"
 
-#define KEY_SIZE 176
-#define NUMBER_OF_ROUNDS 9
-#define BLOCK_LENGTH 16
-#define COLUMN_LENGTH 4
-
 unsigned char logarithmsTable[256] = {
         0x00, 0xff, 0xc8, 0x08, 0x91, 0x10, 0xd0, 0x36, 0x5a, 0x3e, 0xd8, 0x43, 0x99, 0x77, 0xfe, 0x18,
         0x23, 0x20, 0x07, 0x70, 0xa1, 0x6c, 0x0c, 0x7f, 0x62, 0x8b, 0x40, 0x46, 0xc7, 0x4b, 0xe0, 0x0e,
@@ -127,8 +122,8 @@ void KeyExpansion(const unsigned char* inputKey, unsigned char* expandedKeys) {
         expandedKeys[i] = inputKey[i];
     }
 
-    int bytesGenerated = BLOCK_LENGTH;    //we've generated 16 byte in the expanded key so far
-    int rconIteration = 1;      //Rcon iteration starts at 1
+    int bytesGenerated = BLOCK_LENGTH;      //we've generated 16 byte in the expanded key so far
+    int rconIteration = 1;                  //Rcon iteration starts at 1
     unsigned char temp[COLUMN_LENGTH];      //temporary storage for the core
 
     while (bytesGenerated < KEY_SIZE) {
@@ -199,7 +194,7 @@ void ShiftRows(unsigned char* state) {
  * @param column - the block of text which will be operated on
  */
 void MixColumn(unsigned char* column) {
-    unsigned char columnX2[COLUMN_LENGTH]; // @param columnX2 - the column times 2
+    unsigned char columnX2[COLUMN_LENGTH];                      // @param columnX2 - the column times 2
     unsigned char temp[COLUMN_LENGTH];                          // @param temp - a copy of the column
     for (int i = 0; i < COLUMN_LENGTH; i++) {
         temp[i] = column[i];
@@ -259,7 +254,7 @@ void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key) {
  * @param fileContent - the file content to encrypt
  * @param inputKey - the original key for the encryption/decryption
  */
-void AES128::AES_Encrypt(const std::string& fileContent, const std::string& inputKey) {
+std::string AES128::AES_Encrypt(const std::string& fileContent, const std::string& inputKey) {
 
     unsigned char* message = new unsigned char[fileContent.length() + 1];
     unsigned char* key = new unsigned char[inputKey.length() + 1];
@@ -292,8 +287,7 @@ void AES128::AES_Encrypt(const std::string& fileContent, const std::string& inpu
 
     std::string encryptedFile((char*)paddedMessage);
 
-    delete[] paddedMessage;
-    delete[] message;
+    return encryptedFile;
 }
 
 /**
@@ -380,12 +374,19 @@ void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
         message[i] = state[i];
 }
 
+AES128::~AES128()
+{
+    delete[] encryptedMessage;
+    delete[] key;
+    delete[] message;
+}
+
 /**
  * @param encryptedFileContent - the content of the encrypted file.
  * @param inputKey - the original key for the encryption/decryption
  * @return std::string decryptedFile - the decrypted file content
  */
-void AES128::AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey) {
+std::string AES128::AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey) {
 
     unsigned char* encryptedMessage = new unsigned char[encryptedFileContent.length() + 1];
     unsigned char* key = new unsigned char[inputKey.length() + 1];
@@ -405,9 +406,9 @@ void AES128::AES_Decrypt(const std::string& encryptedFileContent, const std::str
 
     std::string decryptedFile((char*)encryptedMessage);
 
-    delete[] encryptedMessage;
-    delete[] key;
+    return decryptedFile;
 }
+
 /*
 int main() {
     std::string message;
