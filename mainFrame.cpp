@@ -102,7 +102,7 @@ void mainFrame::signinFunc(wxCommandEvent& evt)
         wxMessageBox(wxT("Error: Invalid Password."));
         return;
     }
-    if (db->IsUserExists(usrname, password)) {
+    if (!db->IsUserExists(usrname, password)) {
         try {
             db->addAccount(usrname, password);
         }
