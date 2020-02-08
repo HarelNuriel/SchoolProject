@@ -67,6 +67,7 @@ protected:
 };
 
 //std::string sha256(std::string input);
+#define _CRT_SECURE_NO_WARNINGS
 
 #define SHA2_SHFR(x, n)    (x >> n)
 #define SHA2_ROTR(x, n)   ((x >> n) | (x << ((sizeof(x) << 3) - n)))
