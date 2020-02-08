@@ -1,4 +1,10 @@
-#include "AES128.h"
+#include<iostream>
+#include<string.h>
+
+#define KEY_SIZE 176
+#define NUMBER_OF_ROUNDS 9
+#define BLOCK_LENGTH 16
+#define COLUMN_LENGTH 4
 
 unsigned char logarithmsTable[256] = {
         0x00, 0xff, 0xc8, 0x08, 0x91, 0x10, 0xd0, 0x36, 0x5a, 0x3e, 0xd8, 0x43, 0x99, 0x77, 0xfe, 0x18,
@@ -38,7 +44,7 @@ unsigned char exponentialsTable[256] = {
         0x66, 0xb2, 0x76, 0x60, 0xda, 0xc5, 0xf3, 0xf6, 0xaa, 0xcd, 0x9a, 0xa0, 0x75, 0x54, 0x0e, 0x01
 };
 
-unsigned char InverseSBox[256] = {
+unsigned char InverseSBox [256] = {
         0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
         0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
         0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
@@ -57,7 +63,7 @@ unsigned char InverseSBox[256] = {
         0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
 };
 
-unsigned char SBox[256] = {
+unsigned char SBox [256] = {
         0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
         0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
         0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -76,7 +82,7 @@ unsigned char SBox[256] = {
         0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 };
 
-unsigned char Rcon[256] = {
+unsigned char Rcon [256] = {
         0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a,
         0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39,
         0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a,
@@ -106,7 +112,7 @@ unsigned char galoisMultiplication(unsigned char multiplied, unsigned char multi
     // Get the exponential
     multiplication = exponentialsTable[multiplication];
     //if one of the variables is 0 the multiplication is 0.
-    if (multiplied == 0 || multiplying == 0) {
+    if(multiplied == 0 || multiplying == 0) {
         multiplication = 0;
     }
     return multiplication;
@@ -116,27 +122,27 @@ unsigned char galoisMultiplication(unsigned char multiplied, unsigned char multi
  * @param inputKey - the original key
  * @param expandedKeys - an array containing all the keys from the expansion
  */
-void KeyExpansion(const unsigned char* inputKey, unsigned char* expandedKeys) {
+void KeyExpansion(const unsigned char* inputKey, unsigned char* expandedKeys){
     //The first 16 byte are the original key;
-    for (int i = 0; i < BLOCK_LENGTH; i++) {
+    for (int i = 0; i < BLOCK_LENGTH; i++){
         expandedKeys[i] = inputKey[i];
     }
 
-    int bytesGenerated = BLOCK_LENGTH;      //we've generated 16 byte in the expanded key so far
-    int rconIteration = 1;                  //Rcon iteration starts at 1
+    int bytesGenerated = BLOCK_LENGTH;    //we've generated 16 byte in the expanded key so far
+    int rconIteration = 1;      //Rcon iteration starts at 1
     unsigned char temp[COLUMN_LENGTH];      //temporary storage for the core
 
-    while (bytesGenerated < KEY_SIZE) {
+    while (bytesGenerated < KEY_SIZE){
         //Read 4 bytes for the core
         for (int i = 0; i < COLUMN_LENGTH; i++)
             temp[i] = expandedKeys[i + bytesGenerated - COLUMN_LENGTH];
 
         //Perform the core for each 16 byte key
-        if (bytesGenerated % BLOCK_LENGTH == 0) {
+        if (bytesGenerated % BLOCK_LENGTH == 0){
             *temp = (((*temp) >> 8) | ((*temp & 0xff) << 24));
 
             //sbox four bytes
-            for (int i = 0; i < COLUMN_LENGTH; i++) {
+            for (int i = 0; i < COLUMN_LENGTH; i++){
                 temp[i] = SBox[temp[i]];
             }
 
@@ -146,7 +152,7 @@ void KeyExpansion(const unsigned char* inputKey, unsigned char* expandedKeys) {
         }
 
         //XOR temp with expandedKeys[bytesGenerated - 16], and store in expandedKeys
-        for (int i = 0; i < COLUMN_LENGTH; i++) {
+        for (int i = 0; i < COLUMN_LENGTH; i++){
             expandedKeys[bytesGenerated] = expandedKeys[bytesGenerated - BLOCK_LENGTH] ^ temp[i];
             bytesGenerated++;
         }
@@ -194,18 +200,18 @@ void ShiftRows(unsigned char* state) {
  * @param column - the block of text which will be operated on
  */
 void MixColumn(unsigned char* column) {
-    unsigned char columnX2[COLUMN_LENGTH];                      // @param columnX2 - the column times 2
+    unsigned char columnX2[COLUMN_LENGTH]; // @param columnX2 - the column times 2
     unsigned char temp[COLUMN_LENGTH];                          // @param temp - a copy of the column
-    for (int i = 0; i < COLUMN_LENGTH; i++) {
+    for (int i = 0; i < COLUMN_LENGTH; i++){
         temp[i] = column[i];
         columnX2[i] = column[i] << 1;
         if (column[i] & 0x80)
             columnX2[i] ^= 0x1b;
     }
-    for (int i = 0; i < COLUMN_LENGTH; i++) {
+    for (int i = 0; i < COLUMN_LENGTH; i++){
         //implementing the MixColumn voperation
         column[i] = columnX2[i] ^ temp[(i + 3) % COLUMN_LENGTH] ^ temp[(i + 2) % COLUMN_LENGTH]
-            ^ temp[(i + 1) % COLUMN_LENGTH] ^ columnX2[(i + 1) % COLUMN_LENGTH];
+                    ^ temp[(i + 1) % COLUMN_LENGTH] ^ columnX2[(i + 1) % COLUMN_LENGTH];
     }
 }
 
@@ -222,9 +228,9 @@ void AddRoundKey(unsigned char* state, unsigned char* roundKey) {
  * @param message - part of the encrypted file content which will be decrypted
  * @param key - an array containing all the keys from the expansion
  */
-void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key) {
+void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key){
 
-    unsigned char state[BLOCK_LENGTH];
+    unsigned char state [BLOCK_LENGTH];
     for (int i = 0; i < BLOCK_LENGTH; i++)
         state[i] = message[i];
 
@@ -232,7 +238,7 @@ void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key) {
     AddRoundKey(state, key);
 
     //main rounds
-    for (int i = 0; i < NUMBER_OF_ROUNDS; i++) {
+    for (int i = 0; i < NUMBER_OF_ROUNDS; i++){
         SubBytes(state);
         ShiftRows(state);
         for (int j = 0; j < 16; j += 4)
@@ -253,14 +259,15 @@ void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key) {
 /**
  * @param fileContent - the file content to encrypt
  * @param inputKey - the original key for the encryption/decryption
+ * @return
  */
-std::string AES128::AES_Encrypt(const std::string& fileContent, const std::string& inputKey) {
+std::string AES_Encrypt(const std::string& fileContent, const std::string& inputKey){
 
     unsigned char* message = new unsigned char[fileContent.length() + 1];
     unsigned char* key = new unsigned char[inputKey.length() + 1];
 
-    strcpy((char*)message, fileContent.c_str());
-    strcpy((char*)(key), inputKey.c_str());
+    strcpy( (char*)message, fileContent.c_str() );
+    strcpy( (char*)(key), inputKey.c_str() );
 
     //Padding
     int originalLen = strlen((const char*)message);
@@ -270,7 +277,7 @@ std::string AES128::AES_Encrypt(const std::string& fileContent, const std::strin
         lenOfPaddedMessage = ((lenOfPaddedMessage / BLOCK_LENGTH) + 1) * BLOCK_LENGTH;
 
     unsigned char* paddedMessage = new unsigned char[lenOfPaddedMessage];
-    for (int i = 0; i < lenOfPaddedMessage; i++) {
+    for (int i = 0; i < lenOfPaddedMessage; i++){
         if (i >= originalLen)
             paddedMessage[i] = 0;
         else
@@ -285,7 +292,10 @@ std::string AES128::AES_Encrypt(const std::string& fileContent, const std::strin
     for (int i = 0; i < lenOfPaddedMessage; i += BLOCK_LENGTH)
         AES_Encrypt_Algorithm(paddedMessage + i, expandedKeys);
 
-    std::string encryptedFile((char*)paddedMessage);
+    std::string encryptedFile ((char*)paddedMessage);
+
+    delete[] paddedMessage;
+    delete[] message;
 
     return encryptedFile;
 }
@@ -332,15 +342,15 @@ void InverseShiftRows(unsigned char* state) {
  */
 void InverseMixColumn(unsigned char* column) {
     unsigned char a[COLUMN_LENGTH];                          // @param temp - a copy of the column
-    for (int i = 0; i < COLUMN_LENGTH; i++) {
+    for (int i = 0; i < COLUMN_LENGTH; i++){
         a[i] = column[i];
     }
 
-    for (int i = 0; i < COLUMN_LENGTH; i++) {
-        column[i] = galoisMultiplication(a[i], 14) ^
-            galoisMultiplication(a[(i + 3) % COLUMN_LENGTH], 9) ^
-            galoisMultiplication(a[(i + 2) % COLUMN_LENGTH], 13) ^
-            galoisMultiplication(a[(i + 1) % COLUMN_LENGTH], 11);
+    for (int i = 0; i < COLUMN_LENGTH; i++){
+        column[i] = galoisMultiplication(a[i],14) ^
+                    galoisMultiplication(a[(i+3) % COLUMN_LENGTH],9) ^
+                    galoisMultiplication(a[(i+2) % COLUMN_LENGTH],13) ^
+                    galoisMultiplication(a[(i+1) % COLUMN_LENGTH],11);
     }
 }
 
@@ -350,7 +360,7 @@ void InverseMixColumn(unsigned char* column) {
  */
 void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
 
-    unsigned char state[BLOCK_LENGTH];
+    unsigned char state [BLOCK_LENGTH];
     for (int i = 0; i < BLOCK_LENGTH; i++)
         state[i] = message[i];
 
@@ -359,7 +369,7 @@ void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
     InverseShiftRows(state);
     InverseSubBytes(state);
 
-    for (int i = NUMBER_OF_ROUNDS; i > 0; i--) {
+    for(int i = NUMBER_OF_ROUNDS; i > 0; i--){
         AddRoundKey(state, key + (i * 16));
         for (int j = 0; j < 16; j += 4)
             InverseMixColumn(state + j);
@@ -374,25 +384,18 @@ void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
         message[i] = state[i];
 }
 
-AES128::~AES128()
-{
-    delete[] encryptedMessage;
-    delete[] key;
-    delete[] message;
-}
-
 /**
  * @param encryptedFileContent - the content of the encrypted file.
  * @param inputKey - the original key for the encryption/decryption
  * @return std::string decryptedFile - the decrypted file content
  */
-std::string AES128::AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey) {
+std::string AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey) {
 
     unsigned char* encryptedMessage = new unsigned char[encryptedFileContent.length() + 1];
     unsigned char* key = new unsigned char[inputKey.length() + 1];
 
-    strcpy((char*)encryptedMessage, encryptedFileContent.c_str());
-    strcpy((char*)(key), inputKey.c_str());
+    strcpy( (char*)encryptedMessage, encryptedFileContent.c_str() );
+    strcpy( (char*)(key), inputKey.c_str() );
 
     int Len = strlen((const char*)encryptedMessage);
 
@@ -404,13 +407,15 @@ std::string AES128::AES_Decrypt(const std::string& encryptedFileContent, const s
     for (int i = 0; i < Len; i += BLOCK_LENGTH)
         AES_Decrypt_Algorithm(encryptedMessage + i, expandedKeys);
 
-    std::string decryptedFile((char*)encryptedMessage);
+    std::string decryptedFile ((char*)encryptedMessage);
+
+    delete[] encryptedMessage;
+    delete[] key;
 
     return decryptedFile;
 }
 
-/*
-int main() {
+int main(){
     std::string message;
     std::cout << "The Message:" << std::endl;
     getline(std::cin, message);
@@ -421,5 +426,6 @@ int main() {
     message = AES_Decrypt(message, key);
     for (int i = 0; i < message.length(); i++)
         std::cout << message[i];
+
     return 0;
-}*/
+}
