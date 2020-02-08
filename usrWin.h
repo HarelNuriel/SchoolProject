@@ -1,4 +1,5 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
 
 #include "wx/wx.h"
 #include "mainFrame.h"
@@ -6,6 +7,7 @@
 #include "SQLClass.h"
 #include <filesystem>
 #include <fstream>
+#include <regex>
 
 #define KEY_SIZE 16
 
