@@ -1,10 +1,12 @@
 #include "usrWin.h"
 #include "mainFrame.h"
+#include "updateWin.h"
 
 BEGIN_EVENT_TABLE(userWindow, wxFrame)
-    EVT_BUTTON(2, userWindow::encryptFile)
-    EVT_BUTTON(5, userWindow::decryptFile)
-    EVT_BUTTON(6, userWindow::back)
+    EVT_BUTTON(10, userWindow::encryptFile)
+    EVT_BUTTON(11, userWindow::decryptFile)
+    EVT_BUTTON(12, userWindow::back)
+    EVT_BUTTON(13, userWindow::updateFunc)
 END_EVENT_TABLE()
 
 userWindow::userWindow(wxWindow* win, const wxString& title, const wxPoint& pos, const wxSize& size, std::string hashedUser, std::string hashedPassword)
@@ -44,9 +46,10 @@ userWindow::userWindow(wxWindow* win, const wxString& title, const wxPoint& pos,
     vbox->Add(fgs, 1, wxALL | wxEXPAND, 15);
 
     //Initializing the Buttons
-    encryptBtn = new wxButton(panel, 2, "Encrypt");
-    decryptBtn = new wxButton(panel, 5, "Decrypt");
-    backBtn = new wxButton(panel, 6, "Sign out");
+    encryptBtn = new wxButton(panel, 10, "Encrypt");
+    decryptBtn = new wxButton(panel, 11, "Decrypt");
+    backBtn = new wxButton(panel, 12, "Sign out");
+    updateBtn = new wxButton(panel, 13, "Update");
 
     //Adding the Sign out button to the left button box
     btnBoxL->Add(backBtn);
@@ -55,6 +58,7 @@ userWindow::userWindow(wxWindow* win, const wxString& title, const wxPoint& pos,
     vbox->Add(btnBoxL, 0, wxALIGN_LEFT | wxLEFT | wxBOTTOM, 10);
 
     //Adding the En/Decryption buttons to the right button box
+    btnBoxR->Add(updateBtn);
     btnBoxR->Add(encryptBtn);
     btnBoxR->Add(decryptBtn);
 
@@ -82,6 +86,13 @@ void userWindow::back(wxCommandEvent& evt)
     mainFrame* mainWin  = new mainFrame(wxT("AES Project"), wxPoint(-1, -1), wxSize(800, 600));
     this->Close();
     mainWin->Show();
+}
+
+void userWindow::updateFunc(wxCommandEvent& evt)
+{
+    update = new updateWin(nullptr, wxT("AES Project"), wxPoint(-1, -1), wxSize(800, 600), Username, password);
+    this->Close();
+    update->Show();
 }
 
 void userWindow::decryptFile(wxCommandEvent& evt)
