@@ -79,50 +79,15 @@ bool SQLClass::IsUserExists(std::string user, std::string password)
 	return true;
 }
 
-char** SQLClass::updateUsername(std::string user, std::string password, std::string prevUser)
+std::vector<std::string> SQLClass::updatePassword(std::string user, std::string newPassword)
 {
 	char data = 'a';
 	char* errMsg = &data;
 	std::string sql = "SELECT Path FROM Paths WHERE Username='" + user + "';";
 	const char* sqlScript = sql.c_str();
-	char** paths = &errMsg;
+	std::vector<std::string> paths;
 
-	rc = sqlite3_exec(db, sqlScript, GetPaths, (void*)paths, &errMsg);
-
-	if (rc != SQLITE_OK) {
-		throw(sqlite3_errmsg(db));
-	}
-
-	sql = "UPDATE Paths SET Username='" + user + "' WHERE Username='" + prevUser + "';";
-	sqlScript = sql.c_str();
-
-	rc = sqlite3_exec(db, sqlScript, callback, 0, &errMsg);
-
-	if (rc != SQLITE_OK) {
-		throw(sqlite3_errmsg(db));
-	}
-	
-	sql = "UPDATE Paths SET Username='" + user + "' WHERE Username='" + prevUser + "';";
-	sqlScript = sql.c_str();
-
-	rc = sqlite3_exec(db, sqlScript, callback, 0, &errMsg);
-
-	if (rc != SQLITE_OK) {
-		throw(sqlite3_errmsg(db));
-	}
-
-	return paths;
-}
-
-char** SQLClass::updatePassword(std::string user, std::string prevPassword, std::string newPassword)
-{
-	char data = 'a';
-	char* errMsg = &data;
-	std::string sql = "SELECT Path FROM Paths WHERE Username='" + user + "';";
-	const char* sqlScript = sql.c_str();
-	char** paths = &errMsg;
-
-	rc = sqlite3_exec(db, sqlScript, GetPaths, (void*)paths, &errMsg);
+	rc = sqlite3_exec(db, sqlScript, GetPaths, (void*)&paths, &errMsg);
 
 	if (rc != SQLITE_OK) {
 		throw(sqlite3_errmsg(db));
@@ -153,23 +118,6 @@ void SQLClass::removePath(std::string user, std::string path)
 	}
 }
 
-int SQLClass::pathCount(std::string user)
-{
-	int data = 0;
-	char* errMsg;
-	std::string sql = "SELECT Path FROM Paths WHERE Username='" + user + "';";
-	const char* sqlScript = sql.c_str();
-	int* count = &data;
-
-	rc = sqlite3_exec(db, sqlScript, GetCount, 0, &errMsg);
-
-	if (rc != SQLITE_OK) {
-		throw(sqlite3_errmsg(db));
-	}
-
-	return *count;
-}
-
 int SQLClass::callback(void* NotUsed, int argc, char** argv, char** azColName)
 {
 	int i;
@@ -189,14 +137,9 @@ int SQLClass::isInTable(void* NotUsed, int argc, char** argv, char** azColName)
 
 int SQLClass::GetPaths(void* pathsPtr, int argc, char** argv, char** azColName)
 {
-	char** paths = static_cast<char**>(pathsPtr);
-	paths = argv;
-	return 0;
-}
-
-int SQLClass::GetCount(void* countPtr, int argc, char** argv, char** azColName)
-{
-	int* count = static_cast<int*>(countPtr);
-	*count = argc;
+	std::vector<std::string>* paths = &*reinterpret_cast<std::vector<std::string>*>(pathsPtr);
+	for (int i = 0; i < argc; i++) {
+		paths->push_back(argv[i]);
+	}
 	return 0;
 }

@@ -2,7 +2,6 @@
 #include "usrWin.h"
 
 BEGIN_EVENT_TABLE(updateWin, wxFrame)
-    EVT_BUTTON(10, updateWin::updateUser)
     EVT_BUTTON(11, updateWin::updatePassword)
     EVT_BUTTON(12, updateWin::back)
 END_EVENT_TABLE()
@@ -88,48 +87,6 @@ void updateWin::back(wxCommandEvent& evt)
     usrWin->Show();
 }
 
-void updateWin::updateUser(wxCommandEvent& evt)
-{
-    SHA256* Hash = new SHA256();
-
-    std::string prevUsrname = Hash->sha256(preTextBox->GetValue().ToStdString());
-
-    if (prevUsrname != Username) {
-        wxMessageBox(wxT("The previous username does not match the corrent one."));
-        return;
-    }
-
-    std::string newUsrname = Hash->sha256(newTextBox->GetValue().ToStdString());
-
-    delete Hash;
-
-    char** paths = db->updateUsername(newUsrname, password, prevUsrname);
-    int count = db->pathCount(Username);
-    std::string key = "";
-
-    //Getting the key for the decryption
-    for (int i = 0; i < KEY_SIZE; i++) {
-        key += Username[i] ^ password[i];
-    }
-
-    //Decrypting
-    decrypt(paths, count, key);
-
-    //reseting the key
-    key = "";
-
-    //Getting the key for the encryption
-    for (int i = 0; i < KEY_SIZE; i++) {
-        key += newUsrname[i] ^ password[i];
-    }
-
-    //Encrypting
-    encrypt(paths, count, key);
-
-    wxMessageBox(wxT("Successfully updated your username."));
-    //TODO - decrypt all the files and encrypt them using the new username.
-}
-
 void updateWin::updatePassword(wxCommandEvent& evt)
 {
     SHA256* Hash = new SHA256();
@@ -145,17 +102,16 @@ void updateWin::updatePassword(wxCommandEvent& evt)
 
     delete Hash;
 
-    char** paths = db->updatePassword(Username, password, prevPassword);
-    int count = db->pathCount(Username);
+    std::vector<std::string> paths = db->updatePassword(Username, newPassword);
     std::string key = "";
 
     //Getting the key for the decryption
     for (int i = 0; i < KEY_SIZE; i++) {
-        key += Username[i] ^ password[i];
+        key += Username[i] ^ prevPassword[i];
     }
 
     //Decrypting
-    decrypt(paths, count, key);
+    decrypt(paths, key);
 
     //reseting the key
     key = "";
@@ -166,12 +122,14 @@ void updateWin::updatePassword(wxCommandEvent& evt)
     }
 
     //Encrypting
-    encrypt(paths, count, key);
+    encrypt(paths, key);
+
+    password = newPassword;
 
     wxMessageBox(wxT("Successfully updated your username."));
 }
 
-void updateWin::decrypt(char** paths, int pathCount, std::string key)
+void updateWin::decrypt(std::vector<std::string> paths, std::string key)
 {
     int fileSize = 0;
     std::ofstream fwriter;
@@ -180,17 +138,17 @@ void updateWin::decrypt(char** paths, int pathCount, std::string key)
     std::string data;
     std::string decryptedData;
 
-    for (int i = 0; i < pathCount; i++) {
+    for (std::vector<std::string>::iterator it = paths.begin(); it < paths.end(); it++) {
 
-        fileSize = std::filesystem::file_size(paths[i]);
+        fileSize = std::filesystem::file_size(*it);
 
-        if (std::filesystem::is_directory(paths[i])) {
-            for (auto& dir : std::filesystem::directory_iterator(paths[i])) {
+        if (std::filesystem::is_directory(*it)) {
+            for (auto& dir : std::filesystem::directory_iterator(*it)) {
                 if (!std::filesystem::is_directory(dir)) {
                     freader.open(dir.path());
                     freader >> data;
                     freader.close();
-                    decryptedData += AES->AES_Decrypt(data, key);
+                    decryptedData = AES->AES_Decrypt(data, key);
                     fwriter.open(dir.path());
                     fwriter << decryptedData;
                     fwriter.close();
@@ -198,11 +156,11 @@ void updateWin::decrypt(char** paths, int pathCount, std::string key)
             }
         }
         else {
-            freader.open(paths[i]);
+            freader.open(*it);
             freader >> data;
             freader.close();
             decryptedData = AES->AES_Decrypt(data, key);
-            fwriter.open(paths[i]);
+            fwriter.open(*it);
             fwriter << data;
             fwriter.close();
         }
@@ -211,38 +169,38 @@ void updateWin::decrypt(char** paths, int pathCount, std::string key)
     delete AES;
 }
 
-void updateWin::encrypt(char** paths, int pathCount, std::string key)
+void updateWin::encrypt(std::vector<std::string> paths, std::string key)
 {
     int fileSize = 0;
     std::ofstream fwriter;
     std::ifstream freader;
     AES128* AES = new AES128();
     std::string data;
-    std::string decryptedData;
+    std::string encryptedData;
 
-    for (int i = 0; i < pathCount; i++) {
+    for (std::vector<std::string>::iterator it = paths.begin(); it < paths.end(); it++) {
 
-        fileSize = std::filesystem::file_size(paths[i]);
+        fileSize = std::filesystem::file_size(*it);
 
-        if (std::filesystem::is_directory(paths[i])) {
-            for (auto& dir : std::filesystem::directory_iterator(paths[i])) {
+        if (std::filesystem::is_directory(*it)) {
+            for (auto& dir : std::filesystem::directory_iterator(*it)) {
                 if (!std::filesystem::is_directory(dir)) {
                     freader.open(dir.path());
                     freader >> data;
                     freader.close();
-                    decryptedData += AES->AES_Encrypt(data, key);
+                    encryptedData = AES->AES_Encrypt(data, key);
                     fwriter.open(dir.path());
-                    fwriter << decryptedData;
+                    fwriter << encryptedData;
                     fwriter.close();
                 }
             }
         }
         else {
-            freader.open(paths[i]);
+            freader.open(*it);
             freader >> data;
             freader.close();
-            decryptedData = AES->AES_Encrypt(data, key);
-            fwriter.open(paths[i]);
+            encryptedData = AES->AES_Encrypt(data, key);
+            fwriter.open(*it);
             fwriter << data;
             fwriter.close();
         }

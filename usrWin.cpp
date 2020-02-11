@@ -127,10 +127,12 @@ void userWindow::decryptFile(wxCommandEvent& evt)
     std::ifstream freader;
     AES128* decrypt = new AES128();
     std::string data;
-    char key [KEY_SIZE];
+    std::string key = "";
     std::string decryptedData;
 
-    GetKey(key);
+    for (int i = 0; i < KEY_SIZE; i++) {
+        key += Username[i] ^ password[i];
+    }
 
     if (std::filesystem::is_directory(path)) {
         for (auto& dir : std::filesystem::directory_iterator(path)) {
@@ -138,7 +140,7 @@ void userWindow::decryptFile(wxCommandEvent& evt)
                 freader.open(dir.path());
                 freader >> data;
                 freader.close();
-                decryptedData += decrypt->AES_Decrypt(data, key);
+                decryptedData = decrypt->AES_Decrypt(data, key);
                 fwriter.open(dir.path());
                 fwriter << decryptedData;
                 fwriter.close();
@@ -190,11 +192,13 @@ void userWindow::encryptFile(wxCommandEvent& evt)
     std::ofstream fwriter;
     std::ifstream freader;
     AES128* encrypt = new AES128();
-    char key [KEY_SIZE];
+    std::string key = "";
     std::string data;
     std::string EncryptedData;
 
-    GetKey(key);
+    for (int i = 0; i < 16; i++) {
+        key += Username[i] ^ password[i];
+    }
     
     if (std::filesystem::is_directory(path)) {
         for (auto& dir : std::filesystem::directory_iterator(path)) {

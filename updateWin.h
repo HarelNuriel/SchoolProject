@@ -4,6 +4,7 @@
 #include "SQLClass.h"
 #include "usrWin.h"
 #include "sha256.h"
+#include <vector>
 
 #define KEY_SIZE 16
 
@@ -34,10 +35,9 @@ public:
 
 private:
 	void back(wxCommandEvent& evt);
-	void updateUser(wxCommandEvent& evt);
 	void updatePassword(wxCommandEvent& evt);
-	void decrypt(char** paths, int pathCount, std::string key);
-	void encrypt(char** paths, int pathCount, std::string key);
+	void decrypt(std::vector<std::string> paths, std::string key);
+	void encrypt(std::vector<std::string> paths, std::string key);
 
 	DECLARE_EVENT_TABLE()
 };
