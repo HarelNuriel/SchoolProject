@@ -408,18 +408,3 @@ std::string AES128::AES_Decrypt(const std::string& encryptedFileContent, const s
 
     return decryptedFile;
 }
-
-/*
-int main() {
-    std::string message;
-    std::cout << "The Message:" << std::endl;
-    getline(std::cin, message);
-    std::string key;
-    std::cout << "The Key:" << std::endl;
-    getline(std::cin, key);
-    message = AES_Encrypt(message, key);
-    message = AES_Decrypt(message, key);
-    for (int i = 0; i < message.length(); i++)
-        std::cout << message[i];
-    return 0;
-}*/
