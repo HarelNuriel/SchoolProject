@@ -3,7 +3,10 @@
 
 #include "sqlite3.h"
 #include <iostream>
-#include "wx/wx.h"
+#include <fstream>
+#include "AES128.h"
+
+#define KEY_SIZE 16
 
 class SQLClass
 {
@@ -15,13 +18,16 @@ public:
 	void addPath(std::string user, std::string path);
 	bool IsPathExists(std::string path, std::string user);
 	bool IsUserExists(std::string user, std::string password);
-	void updateUsername(std::string user, std::string password);
-	void updatePassword(std::string user, std::string password);
+	char** updateUsername(std::string user, std::string password, std::string prevUser);
+	char** updatePassword(std::string user, std::string password, std::string newPassword);
 	void removePath(std::string user, std::string path);
+	int pathCount(std::string user);
 
-private:
+//private:
 	static int callback(void* NotUsed, int argc, char** argv, char** azColName);
 	static int isInTable(void* NotUsed, int argc, char** argv, char** azColName);
+	static int GetPaths(void* NotUsed, int argc, char** argv, char** azColName);
+	static int GetCount(void* NotUsed, int argc, char** argv, char** azColName);
 	sqlite3* db;				//Data Base
 	int rc;						//Return Code
 };
