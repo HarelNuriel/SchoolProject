@@ -20,5 +20,5 @@ private:
 	unsigned char* encryptedMessage;
 	unsigned char* key;
 	unsigned char* message;
-};
 
+};
