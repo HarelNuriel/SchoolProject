@@ -12,6 +12,7 @@
 #define KEY_SIZE 16
 
 class mainFrame;
+class updateWin;
 
 class userWindow : public wxFrame
 {
@@ -22,12 +23,14 @@ public:
 	void encryptFile(wxCommandEvent& evt);
 	void decryptFile(wxCommandEvent& evt);
 	void back(wxCommandEvent& evt);
+	void updateFunc(wxCommandEvent& evt);
 
 private:
 	wxTextCtrl* pathTextBox;
 	wxButton* encryptBtn;
 	wxButton* decryptBtn;
 	wxButton* backBtn;
+	wxButton* updateBtn;
 	wxPanel* panel;
 	wxBoxSizer* vbox;
 	wxBoxSizer* btnBoxR;
@@ -35,6 +38,7 @@ private:
 	wxFlexGridSizer* fgs;
 	wxFont* font;
 	wxStaticText* path;
+	updateWin* update;
 	SQLClass* db = new SQLClass();
 	std::string Username;
 	std::string password;
