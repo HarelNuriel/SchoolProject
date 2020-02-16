@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <vector>
 
 #define KEY_SIZE 176
 #define NUMBER_OF_ROUNDS 9
@@ -13,12 +14,11 @@ class AES128
 {
 public:
 	~AES128();
-	std::string AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey);
-	std::string AES_Encrypt(const std::string& encryptedFileContent, const std::string& inputKey);
+	std::string AES_Decrypt(std::vector<unsigned char> fileContent, std::vector<unsigned char> key);
+	std::string AES_Encrypt(std::vector<unsigned char> fileContent, std::vector<unsigned char> inputKey);
 
 private:
 	unsigned char* encryptedMessage;
-	unsigned char* key;
 	unsigned char* message;
 
 };
