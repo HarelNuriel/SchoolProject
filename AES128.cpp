@@ -222,11 +222,13 @@ void AddRoundKey(unsigned char* state, unsigned char* roundKey) {
  * @param message - part of the encrypted file content which will be decrypted
  * @param key - an array containing all the keys from the expansion
  */
-void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key) {
+std::string AES_Encrypt_Algorithm(std::vector<unsigned char>::iterator message, unsigned char* key) {
 
     unsigned char state[BLOCK_LENGTH];
-    for (int i = 0; i < BLOCK_LENGTH; i++)
-        state[i] = message[i];
+    for (int i = 0; i < BLOCK_LENGTH; i++) {
+        state[i] = *message;
+        message++;
+    }
 
     //Pre-encryption
     AddRoundKey(state, key);
@@ -246,46 +248,50 @@ void AES_Encrypt_Algorithm(unsigned char* message, unsigned char* key) {
     AddRoundKey(state, key + 160);
 
     //copying the state into the message
-    for (int i = 0; i < BLOCK_LENGTH; i++)
-        message[i] = state[i];
+    std::string data(state, state + sizeof(state) / sizeof(state[0]));
+
+    return data;
 }
 
 /**
  * @param fileContent - the file content to encrypt
  * @param inputKey - the original key for the encryption/decryption
  */
-std::string AES128::AES_Encrypt(const std::string& fileContent, const std::string& inputKey) {
+std::string AES128::AES_Encrypt(std::vector<unsigned char> fileContent, std::vector<unsigned char> inputKey) {
 
-    unsigned char* message = new unsigned char[fileContent.length() + 1];
-    unsigned char* key = new unsigned char[inputKey.length() + 1];
+    //message = new unsigned char[fileContent.length() + 1];
+    unsigned char key[BLOCK_LENGTH];
 
-    strcpy((char*)message, fileContent.c_str());
-    strcpy((char*)(key), inputKey.c_str());
+    //strcpy((char*)message, fileContent.c_str());
+    //strcpy((char*)(key), inputKey.c_str());
 
     //Padding
-    int originalLen = strlen((const char*)message);
+    int originalLen = fileContent.size();
     int lenOfPaddedMessage = originalLen;
 
     if (lenOfPaddedMessage % BLOCK_LENGTH != 0)
         lenOfPaddedMessage = ((lenOfPaddedMessage / BLOCK_LENGTH) + 1) * BLOCK_LENGTH;
 
-    unsigned char* paddedMessage = new unsigned char[lenOfPaddedMessage];
-    for (int i = 0; i < lenOfPaddedMessage; i++) {
-        if (i >= originalLen)
-            paddedMessage[i] = 0;
-        else
-            paddedMessage[i] = message[i];
+    std::vector<unsigned char> paddedMessage = fileContent;
+    for (int i = 0; i < lenOfPaddedMessage - fileContent.size(); i++) {
+        paddedMessage.push_back(0);
+    }
+
+    std::vector<unsigned char>::iterator k_it = inputKey.begin();
+
+    for (int i = 0; i < BLOCK_LENGTH; i++) {
+        key[i] = *k_it;
+        k_it++;
     }
 
     //expanding the key
     unsigned char expandedKeys[KEY_SIZE];
     KeyExpansion(key, expandedKeys);
+    std::string encryptedFile;
 
     //encrypt padded message
-    for (int i = 0; i < lenOfPaddedMessage; i += BLOCK_LENGTH)
-        AES_Encrypt_Algorithm(paddedMessage + i, expandedKeys);
-
-    std::string encryptedFile((char*)paddedMessage);
+    for (std::vector<unsigned char>::iterator m_it = paddedMessage.begin(); m_it < paddedMessage.end(); m_it += BLOCK_LENGTH)
+        encryptedFile += AES_Encrypt_Algorithm(m_it, expandedKeys);
 
     return encryptedFile;
 }
@@ -348,11 +354,13 @@ void InverseMixColumn(unsigned char* column) {
  * @param message - part of the encrypted file content which will be decrypted
  * @param key - an array containing all the keys from the expansion
  */
-void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
+std::string AES_Decrypt_Algorithm(std::vector<unsigned char>::iterator message, unsigned char* key) {
 
     unsigned char state[BLOCK_LENGTH];
-    for (int i = 0; i < BLOCK_LENGTH; i++)
-        state[i] = message[i];
+    for (int i = 0; i < BLOCK_LENGTH; i++) {
+        state[i] = *message;
+        message++;
+    }
 
     //AES decrypt algorithm start
     AddRoundKey(state, key + 160);
@@ -369,15 +377,14 @@ void AES_Decrypt_Algorithm(unsigned char* message, unsigned char* key) {
 
     AddRoundKey(state, key);
     //AES decrypt algorithm end
+    std::string data(state, state + sizeof(state) / sizeof(state[0]));
 
-    for (int i = 0; i < BLOCK_LENGTH; i++)
-        message[i] = state[i];
+    return data;
 }
 
 AES128::~AES128()
 {
     delete[] encryptedMessage;
-    delete[] key;
     delete[] message;
 }
 
@@ -386,25 +393,32 @@ AES128::~AES128()
  * @param inputKey - the original key for the encryption/decryption
  * @return std::string decryptedFile - the decrypted file content
  */
-std::string AES128::AES_Decrypt(const std::string& encryptedFileContent, const std::string& inputKey) {
+std::string AES128::AES_Decrypt(std::vector<unsigned char> fileContent, std::vector<unsigned char> Vkey) {
 
-    unsigned char* encryptedMessage = new unsigned char[encryptedFileContent.length() + 1];
-    unsigned char* key = new unsigned char[inputKey.length() + 1];
+    //encryptedMessage = new unsigned char[encryptedFileContent.length() + 1];
+    //key = new unsigned char[inputKey.length() + 1];
 
-    strcpy((char*)encryptedMessage, encryptedFileContent.c_str());
-    strcpy((char*)(key), inputKey.c_str());
+    //strcpy((char*)encryptedMessage, encryptedFileContent.c_str());
+    //strcpy((char*)(key), inputKey.c_str());
 
-    int Len = strlen((const char*)encryptedMessage);
+    //int Len = strlen((const char*)message);
+    unsigned char key[BLOCK_LENGTH];
+    std::vector<unsigned char>::iterator k_it = Vkey.begin();
+
+    for (int i = 0; i < BLOCK_LENGTH; i++) {
+        key[i] = *k_it;
+        k_it++;
+    }
 
     //expanding the key
     unsigned char expandedKeys[KEY_SIZE];
     KeyExpansion(key, expandedKeys);
+    std::string decryptedFile;
 
     //encrypt padded message
-    for (int i = 0; i < Len; i += BLOCK_LENGTH)
-        AES_Decrypt_Algorithm(encryptedMessage + i, expandedKeys);
-
-    std::string decryptedFile((char*)encryptedMessage);
+    for (std::vector<unsigned char>::iterator m_it = fileContent.begin(); m_it < fileContent.end(); m_it += BLOCK_LENGTH) {
+        decryptedFile += AES_Decrypt_Algorithm(m_it, expandedKeys);
+    }
 
     return decryptedFile;
 }

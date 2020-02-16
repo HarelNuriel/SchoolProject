@@ -5,6 +5,7 @@
 #include "usrWin.h"
 #include "sha256.h"
 #include <vector>
+#include <queue>
 
 #define KEY_SIZE 16
 
@@ -18,7 +19,6 @@ public:
 
 	wxTextCtrl* preTextBox;
 	wxTextCtrl* newTextBox;
-	wxButton* updateUsr;
 	wxButton* updatePasswordBtn;
 	wxButton* backBtn;
 	wxPanel* panel;
@@ -36,8 +36,8 @@ public:
 private:
 	void back(wxCommandEvent& evt);
 	void updatePassword(wxCommandEvent& evt);
-	void decrypt(std::vector<std::string> paths, std::string key);
-	void encrypt(std::vector<std::string> paths, std::string key);
+	void decrypt(std::vector<std::string> paths, std::vector<unsigned char> key);
+	void encrypt(std::vector<std::string> paths, std::vector<unsigned char> key);
 
 	DECLARE_EVENT_TABLE()
 };
