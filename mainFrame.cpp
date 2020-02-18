@@ -67,19 +67,27 @@ mainFrame::mainFrame(const wxString& title, const wxPoint& pos, const wxSize& si
 
 mainFrame::~mainFrame()
 {
+    // Cleaning up memory
     delete db;
     delete panel;
 }
 
 void mainFrame::loginFunc(wxCommandEvent &evt)
 {
+    // Hashing the username and password
+    // Crearting the hash variable
     SHA256* hash = new SHA256();
 
+    // Hashing the username/password
     std::string usrname =  hash->sha256(usrTextBox->GetValue().ToStdString());
     std::string password = hash->sha256(passTextBox->GetValue().ToStdString());
 
+    // Deleting the hash variable
     delete hash;
-    
+   
+    // Checking if the user exists
+    // True - opening a new window
+    // False - returning an error message
     if (db->IsUserExists(usrname, password)) {
         window = new userWindow(nullptr, wxT("AES Project"), wxPoint(-1, -1), wxSize(800, 600), usrname, password);
         this->Close();
@@ -91,18 +99,28 @@ void mainFrame::loginFunc(wxCommandEvent &evt)
 
 void mainFrame::signinFunc(wxCommandEvent& evt)
 {
-    //hashing the username and password
+    // Hashing the username and password
+    // Crearting the hash variable
     SHA256* hash = new SHA256();
 
+    // Hashing the username/password
     std::string usrname = hash->sha256(usrTextBox->GetValue().ToStdString());
     std::string password = hash->sha256(passTextBox->GetValue().ToStdString());
 
+    // Deleting the hash variable
     delete hash;
 
+    // Checking if the password is valid
+    // True - return error message
     if (!IsPasswordValid(passTextBox->GetValue().ToStdString())) {
         wxMessageBox(wxT("Error: Invalid Password."));
         return;
     }
+    
+    // Checking if the username exists in the database
+    // True - trying to addd the username into the table
+    // Incase of an exception returning an error message
+    // False - returning and error message
     if (!db->IsUserExists(usrname, password)) {
         try {
             db->addAccount(usrname, password);
@@ -116,6 +134,7 @@ void mainFrame::signinFunc(wxCommandEvent& evt)
 }
 
 bool mainFrame::IsPasswordValid(std::string password) {
+    // Checking if the password is valid 
     return (password.length() >= 8);    //return true if the password matches the exp and has length of 8+ chars.
 }
 
