@@ -259,11 +259,7 @@ std::string AES_Encrypt_Algorithm(std::vector<unsigned char>::iterator message, 
  */
 std::string AES128::AES_Encrypt(std::vector<unsigned char> fileContent, std::vector<unsigned char> inputKey) {
 
-    //message = new unsigned char[fileContent.length() + 1];
     unsigned char key[BLOCK_LENGTH];
-
-    //strcpy((char*)message, fileContent.c_str());
-    //strcpy((char*)(key), inputKey.c_str());
 
     //Padding
     int originalLen = fileContent.size();
@@ -395,13 +391,6 @@ AES128::~AES128()
  */
 std::string AES128::AES_Decrypt(std::vector<unsigned char> fileContent, std::vector<unsigned char> Vkey) {
 
-    //encryptedMessage = new unsigned char[encryptedFileContent.length() + 1];
-    //key = new unsigned char[inputKey.length() + 1];
-
-    //strcpy((char*)encryptedMessage, encryptedFileContent.c_str());
-    //strcpy((char*)(key), inputKey.c_str());
-
-    //int Len = strlen((const char*)message);
     unsigned char key[BLOCK_LENGTH];
     std::vector<unsigned char>::iterator k_it = Vkey.begin();
 
