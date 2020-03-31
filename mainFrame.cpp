@@ -97,7 +97,7 @@ void mainFrame::loginFunc(wxCommandEvent &evt)
         wxMessageBox(wxT("Error: Wrong Username or Password."));
 }
 
-void mainFrame::signinFunc(wxCommandEvent& evt)
+void mainFrame::signupFunc(wxCommandEvent& evt)
 {
     // Hashing the username and password
     // Crearting the hash variable
@@ -127,10 +127,14 @@ void mainFrame::signinFunc(wxCommandEvent& evt)
         }
         catch(int e){
             wxMessageBox(wxT("An Error Has Occured."));
+            return;
         }
     }
-    else
+    else{
         wxMessageBox(wxT("Error: That username already exists."));
+        return;
+    }
+    wxMessageBox(wxT("Successfully signed up."));
 }
 
 bool mainFrame::IsPasswordValid(std::string password) {
