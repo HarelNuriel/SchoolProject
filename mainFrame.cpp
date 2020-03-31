@@ -49,7 +49,7 @@ mainFrame::mainFrame(const wxString& title, const wxPoint& pos, const wxSize& si
 
     //Initializing the Buttons
     loginBtn = new wxButton(panel, 2, "Login");
-    signinBtn = new wxButton(panel, 5, "Signin");
+    signinBtn = new wxButton(panel, 5, "Sign up");
 
     //Adding the Sign\log in button to the button box
     btnBox->Add(loginBtn);
