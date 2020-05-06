@@ -17,7 +17,7 @@ public:
     wxTextCtrl* usrTextBox;
     wxTextCtrl* passTextBox;
     wxButton* loginBtn;
-    wxButton* signinBtn;
+    wxButton* signupBtn;
     userWindow* window;
     wxPanel* panel;
     wxBoxSizer* vbox;
@@ -28,7 +28,7 @@ public:
     wxStaticText* password;
 
     void loginFunc(wxCommandEvent &evt);
-    void signinFunc(wxCommandEvent &evt);
+    void signupFunc(wxCommandEvent &evt);
 
     DECLARE_EVENT_TABLE()
 
