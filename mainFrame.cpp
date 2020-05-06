@@ -3,7 +3,7 @@
 
 BEGIN_EVENT_TABLE(mainFrame, wxFrame)
     EVT_BUTTON(2, mainFrame::loginFunc)
-    EVT_BUTTON(5, mainFrame::signinFunc)
+    EVT_BUTTON(5, mainFrame::signupFunc)
 END_EVENT_TABLE()
 
 mainFrame::mainFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
@@ -49,11 +49,11 @@ mainFrame::mainFrame(const wxString& title, const wxPoint& pos, const wxSize& si
 
     //Initializing the Buttons
     loginBtn = new wxButton(panel, 2, "Login");
-    signinBtn = new wxButton(panel, 5, "Sign up");
+    signupBtn = new wxButton(panel, 5, "Sign up");
 
     //Adding the Sign\log in button to the button box
     btnBox->Add(loginBtn);
-    btnBox->Add(signinBtn);
+    btnBox->Add(signupBtn);
 
     //Adding the button box to the vertical box and aligning it the its place
     vbox->Add(btnBox, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 10);
