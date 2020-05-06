@@ -32,8 +32,8 @@ updateWin::updateWin(wxWindow* win, const wxString& title, const wxPoint& pos, c
     updated->SetFont(*font);
 
     //Initializing the TextBox in which the user will put the path for En/Decryption
-    preTextBox = new wxTextCtrl(panel, 109, "", wxDefaultPosition, wxSize(400, 50));
-    newTextBox = new wxTextCtrl(panel, 110, "", wxDefaultPosition, wxSize(400, 50));
+    preTextBox = new wxTextCtrl(panel, 109, "", wxDefaultPosition, wxSize(400, 50), wxTE_PASSWORD | wxOK);
+    newTextBox = new wxTextCtrl(panel, 110, "", wxDefaultPosition, wxSize(400, 50), wxTE_PASSWORD | wxOK);
 
     //Setting the TextBox's font
     preTextBox->SetFont(*font);
@@ -201,101 +201,72 @@ void updateWin::decrypt(std::vector<std::string> paths, std::vector<unsigned cha
             }
             else {
 
-		// Opening the file for reading the binaries
                 freader.open(Q_paths.front(), std::ios_base::binary);
 
-		// Creating a vector to store the data and storing the data inside
                 std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(freader), {});
 
-	 	// Closing the file to not cause a conflict when creating a reader
                 freader.close();
 
-		// Decrypting the data
                 decryptedData = AES->AES_Decrypt(buffer, key);
 
-		// Opening the file for writing the decrypted data inside, writing the data and cloning the file
                 fwriter.open(Q_paths.front(), std::ios_base::binary);
                 fwriter << decryptedData;
                 fwriter.close();
             }
-	    Q_path.pop();	// After the scan is finished poping the directory out of the queue
         }
     }
-    // Deleting the AES variable to free memory
     delete AES;
 }
 
 void updateWin::encrypt(std::vector<std::string> paths, std::vector<unsigned char> key)
 {
-    // Creating the file reader/writer, the AES variable for encrypting,
-    // creating a string to store the encrypted data inside and creating a queue
-    // to store the sub-directories inside
     std::ofstream fwriter;
     std::ifstream freader;
     AES128* AES = new AES128();
     std::string encryptedData;
     std::queue<std::filesystem::path> Q_paths;
 
-    // Scanning the vector for all the paths
     for (std::vector<std::string>::iterator it = paths.begin(); it < paths.end(); it++) {
 
-	// Adding the first path to the queue to start scanning
         Q_paths.push(*it);
 
-	// Scanning the queue for all the sub-directories
         while (!Q_paths.empty()) {
-	    // Checking if the path is a directory
             if (std::filesystem::is_directory(Q_paths.front())) {
-		// Scanning the path if its a directory
                 for (auto& dir : std::filesystem::directory_iterator(Q_paths.front())) {
-		    // Checking if the path is directory
                     if (!std::filesystem::is_directory(dir)) {
 
-			// Opening the file in binary form
                         freader.open(dir.path(), std::ios_base::binary);
 
-			// Copying the file content into the vector
                         std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(freader), {});
 
-		        // Closing the file
                         freader.close();
 
-			// Calling the encryption function to encrypt the file content
                         encryptedData = AES->AES_Encrypt(buffer, key);
 
-			// Opening the file in binary form
                         fwriter.open(dir.path(), std::ios_base::binary);
-                        fwriter << encryptedData;	// Replacing the content with the encrypted content
-                        fwriter.close();		// Closing the file
+                        fwriter << encryptedData;
+                        fwriter.close();
                     }
                     else {
-			// If the path is directory, insert the directory into the queue to scan later
                         Q_paths.push(dir.path());
                     }
                 }
-		// After the scan is finished poping the directory out of the queue
                 Q_paths.pop();
             }
             else {
-		// Opening thefile in binary form
                 freader.open(Q_paths.front(), std::ios_base::binary);
 
-		// Copying the content into the vector
                 std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(freader), {});
 
-		// Closing the file
                 freader.close();
 
-		// Encrypting the content
                 encryptedData = AES->AES_Encrypt(buffer, key);
 
-		// Opening the file
                 fwriter.open(Q_paths.front(), std::ios_base::binary);
-                fwriter << encryptedData;	// Replacing the file content with the encrypted content 
-                fwriter.close();		// Closing the file
+                fwriter << encryptedData;
+                fwriter.close();
             }
-	    Q_path.pop();	// After the scan is finished poping the directory out of the queue
         }
     }
-    delete AES; // Freeing up memory
+    delete AES;
 }
